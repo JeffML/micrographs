@@ -60,14 +60,12 @@
       }
       body.editing #hint { display: none; }
 
-      /* Show correct message per input type */
+      /* Touch hint shown by default; swap to hover hint on real mouse devices */
       #hint-hover { display: none; }
-      #hint-touch { display: none; }
+      #hint-touch { display: inline; }
       @media (hover: hover) and (pointer: fine) {
         #hint-hover { display: inline; }
-      }
-      @media (hover: none) and (pointer: coarse) {
-        #hint-touch { display: inline; }
+        #hint-touch { display: none; }
       }
 
       #container {
