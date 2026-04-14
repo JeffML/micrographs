@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact Card – Micrographs by Jeff Lowery</title>
+  <style>
+    @page {
+      size: 7.5in 5.5in landscape;
+      margin: 0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 7.5in;
+      height: 5.5in;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    /* Visible text area: 5.5 × 3.5 inches */
+    .card {
+      width: 5.5in;
+      height: 3.5in;
+      border: 1.5pt solid #888;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.18in;
+      padding: 0.35in 0.5in;
+      position: relative;
+    }
+
+    /* Corner accents */
+    .card::before,
+    .card::after {
+      content: '';
+      position: absolute;
+      width: 0.25in;
+      height: 0.25in;
+      border-color: #555;
+      border-style: solid;
+    }
+    .card::before { top: 0.12in; left: 0.12in; border-width: 1pt 0 0 1pt; }
+    .card::after  { bottom: 0.12in; right: 0.12in; border-width: 0 1pt 1pt 0; }
+
+    .title {
+      font-size: 28pt;
+      font-weight: normal;
+      letter-spacing: 0.04em;
+      color: #1a1a1a;
+      text-align: center;
+    }
+
+    .byline {
+      font-size: 11pt;
+      color: #555;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .rule {
+      width: 2in;
+      border: none;
+      border-top: 0.5pt solid #aaa;
+    }
+
+    .contact {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.06in;
+    }
+
+    .contact a {
+      font-size: 10pt;
+      color: #333;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+    }
+
+    .contact .label {
+      color: #888;
+      font-style: italic;
+      margin-right: 0.04in;
+    }
+
+    @media screen {
+      body {
+        background: #e8e8e8;
+        min-height: 100vh;
+        width: 100%;
+        height: auto;
+        padding: 0.5in;
+      }
+      .card {
+        background: #fff;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Micrographs</div>
+    <div class="byline">by Jeff Lowery</div>
+    <hr class="rule">
+    <div class="contact">
+      <div><span class="label">email</span><a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a></div>
+      <div><span class="label">gallery</span><a href="https://micrographs.netlify.app">micrographs.netlify.app</a></div>
+    </div>
+  </div>
+</body>
+</html>
