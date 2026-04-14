@@ -25,7 +25,7 @@ An interactive photo wall where each framed photograph has a hover tooltip.
 ## Adding / Editing Hotspots
 
 1. Open the site in a browser
-2. Press **E** (or click the **Edit Hotspots** button) to enter editor mode
+2. Press **Shift+Ctrl+E** to open the editor password prompt, then enter the password
 3. **Draw** a hotspot: click and drag a rectangle over a photo frame → enter tooltip text when prompted
 4. **Move** a hotspot: drag it to a new position
 5. **Resize** a hotspot: drag the yellow corner handle

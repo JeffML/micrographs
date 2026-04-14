@@ -85,17 +85,22 @@
       .hotspot .tip {
         display: none;
         position: absolute;
-        bottom: calc(100% + 8px);
+        bottom: calc(100% + 10px);
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.88);
-        color: #fff;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 13px;
+        background: rgba(20, 20, 20, 0.93);
+        color: #f0f0f0;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.4;
+        letter-spacing: 0.01em;
         white-space: nowrap;
         pointer-events: none;
         z-index: 50;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.12);
       }
       .hotspot .tip::after {
         content: "";
@@ -183,7 +188,6 @@
         />
         <div id="draft"></div>
       </div>
-      <button id="btn-edit">Edit Hotspots</button>
     </div>
 
     <script>
@@ -191,9 +195,11 @@
       let hotspots = [];
       let editing = false;
 
+      const EDITOR_HASH =
+        "4892976e2316ba14d7fe0d61148ca4b7e5786259af8891e55f0f6be5f3b76ce4";
+
       const container = document.getElementById("container");
       const draft = document.getElementById("draft");
-      const btnEdit = document.getElementById("btn-edit");
       const btnCopy = document.getElementById("btn-copy");
       const btnExit = document.getElementById("btn-exit");
       const toolbar = document.getElementById("toolbar");
@@ -214,19 +220,30 @@
         editing = on;
         document.body.classList.toggle("editing", on);
         toolbar.classList.toggle("visible", on);
-        btnEdit.style.visibility = on ? "hidden" : "visible";
       }
 
-      btnEdit.addEventListener("click", () => setEditing(true));
+      async function tryEnterEditor() {
+        const pw = prompt("Editor password:");
+        if (!pw) return;
+        const hash = await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(pw),
+        );
+        const hex = Array.from(new Uint8Array(hash))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        if (hex === EDITOR_HASH) {
+          setEditing(true);
+        } else {
+          alert("Incorrect password.");
+        }
+      }
+
       btnExit.addEventListener("click", () => setEditing(false));
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && editing) setEditing(false);
-        if (
-          (e.key === "e" || e.key === "E") &&
-          !editing &&
-          !e.target.matches("input,textarea")
-        )
-          setEditing(true);
+        if (e.key === "E" && e.ctrlKey && e.shiftKey && !editing)
+          tryEnterEditor();
       });
 
       // ── Render ──────────────────────────────────────────────────
