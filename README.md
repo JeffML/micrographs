@@ -37,13 +37,7 @@ An interactive photo wall where each framed photograph has a hover tooltip.
 
 ## Saving Hotspots
 
-Netlify serves static files, so you save hotspots by updating `hotspots.json` and redeploying:
-
-1. In editor mode, click **Copy JSON**
-2. Open `hotspots.json` in a text editor
-3. Select all existing content and paste the copied JSON
-4. Save the file
-5. Redeploy to Netlify (push to Git, or drag-and-drop the folder in the Netlify dashboard)
+Click **Save** in the editor toolbar. The function verifies your password server-side and saves directly to Netlify Blobs — no git push needed.
 
 ---
 

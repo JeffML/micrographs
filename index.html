@@ -169,7 +169,7 @@
   </head>
   <body>
     <div id="toolbar">
-      <button id="btn-copy">Copy JSON</button>
+      <button id="btn-save">Save</button>
       <button id="btn-exit">Exit Editor</button>
       <span
         >Drag empty area to add &nbsp;·&nbsp; Drag hotspot to move &nbsp;·&nbsp;
@@ -191,21 +191,18 @@
     </div>
 
     <script>
-      const HOTSPOTS_URL = "hotspots.json";
       let hotspots = [];
       let editing = false;
-
-      const EDITOR_HASH =
-        "4892976e2316ba14d7fe0d61148ca4b7e5786259af8891e55f0f6be5f3b76ce4";
+      let editorPassword = null;
 
       const container = document.getElementById("container");
       const draft = document.getElementById("draft");
-      const btnCopy = document.getElementById("btn-copy");
+      const btnSave = document.getElementById("btn-save");
       const btnExit = document.getElementById("btn-exit");
       const toolbar = document.getElementById("toolbar");
 
       // ── Load ────────────────────────────────────────────────────
-      fetch(HOTSPOTS_URL)
+      fetch('/api/hotspots')
         .then((r) => r.json())
         .then((data) => {
           hotspots = data;
@@ -222,21 +219,11 @@
         toolbar.classList.toggle("visible", on);
       }
 
-      async function tryEnterEditor() {
+      function tryEnterEditor() {
         const pw = prompt("Editor password:");
         if (!pw) return;
-        const hash = await crypto.subtle.digest(
-          "SHA-256",
-          new TextEncoder().encode(pw),
-        );
-        const hex = Array.from(new Uint8Array(hash))
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join("");
-        if (hex === EDITOR_HASH) {
-          setEditing(true);
-        } else {
-          alert("Incorrect password.");
-        }
+        editorPassword = pw;
+        setEditing(true);
       }
 
       btnExit.addEventListener("click", () => setEditing(false));
@@ -443,8 +430,8 @@
         };
       }
 
-      // ── Copy JSON ───────────────────────────────────────────────
-      btnCopy.addEventListener("click", () => {
+      // ── Save ─────────────────────────────────────────────────────
+      btnSave.addEventListener("click", async () => {
         const clean = hotspots.map((hs) => ({
           x: round(hs.x),
           y: round(hs.y),
@@ -452,12 +439,33 @@
           h: round(hs.h),
           tooltip: hs.tooltip,
         }));
-        navigator.clipboard
-          .writeText(JSON.stringify(clean, null, 2))
-          .then(() => {
-            btnCopy.textContent = "Copied!";
-            setTimeout(() => (btnCopy.textContent = "Copy JSON"), 2000);
+        btnSave.textContent = "Saving…";
+        btnSave.disabled = true;
+        try {
+          const res = await fetch('/api/hotspots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: editorPassword, hotspots: clean })
           });
+          if (res.ok) {
+            btnSave.textContent = "Saved!";
+            setTimeout(() => { btnSave.textContent = "Save"; btnSave.disabled = false; }, 2000);
+          } else if (res.status === 401) {
+            alert("Incorrect password — edits not saved.");
+            editorPassword = null;
+            setEditing(false);
+            btnSave.textContent = "Save";
+            btnSave.disabled = false;
+          } else {
+            alert("Save failed. Please try again.");
+            btnSave.textContent = "Save";
+            btnSave.disabled = false;
+          }
+        } catch {
+          alert("Network error. Please try again.");
+          btnSave.textContent = "Save";
+          btnSave.disabled = false;
+        }
       });
 
       // ── Helpers ─────────────────────────────────────────────────
