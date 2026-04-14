@@ -52,6 +52,24 @@
         gap: 14px;
       }
 
+      /* Hint text — shown only in viewer mode */
+      #hint {
+        color: #888;
+        font-size: 13px;
+        letter-spacing: 0.03em;
+      }
+      body.editing #hint { display: none; }
+
+      /* Show correct message per input type */
+      #hint-hover { display: none; }
+      #hint-touch { display: none; }
+      @media (hover: hover) and (pointer: fine) {
+        #hint-hover { display: inline; }
+      }
+      @media (hover: none) and (pointer: coarse) {
+        #hint-touch { display: inline; }
+      }
+
       #container {
         position: relative;
         display: inline-block;
@@ -188,6 +206,10 @@
         />
         <div id="draft"></div>
       </div>
+      <p id="hint">
+        <span id="hint-hover">Hover over any photograph for more info</span>
+        <span id="hint-touch">Tap any photograph for more info</span>
+      </p>
     </div>
 
     <script>
