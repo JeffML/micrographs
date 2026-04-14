@@ -229,7 +229,7 @@
       btnExit.addEventListener("click", () => setEditing(false));
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && editing) setEditing(false);
-        if (e.key === "E" && e.shiftKey && e.altKey && !editing)
+        if ((e.key === "e" || e.key === "E") && e.shiftKey && e.altKey && !editing)
           tryEnterEditor();
       });
 
