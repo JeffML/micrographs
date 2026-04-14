@@ -246,6 +246,20 @@
           tryEnterEditor();
       });
 
+      // ── 5-tap trigger (mobile) ───────────────────────────────────
+      let tapCount = 0, tapTimer = null;
+      document.addEventListener("touchend", () => {
+        if (editing) return;
+        tapCount++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
+        if (tapCount >= 5) {
+          tapCount = 0;
+          clearTimeout(tapTimer);
+          tryEnterEditor();
+        }
+      });
+
       // ── Render ──────────────────────────────────────────────────
       function render() {
         document.querySelectorAll(".hotspot").forEach((el) => el.remove());
