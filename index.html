@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Wall</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: #111;
+        font-family: system-ui, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* ── Editor toolbar ───────────────────────────────────── */
+      #toolbar {
+        width: 100%;
+        background: #222;
+        color: #bbb;
+        padding: 8px 12px;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+      #toolbar.visible {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      #toolbar button {
+        padding: 5px 12px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      /* ── Stage ────────────────────────────────────────────── */
+      #stage {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+
+      #container {
+        position: relative;
+        display: inline-block;
+        line-height: 0;
+      }
+
+      #photo {
+        display: block;
+        max-width: 90vw;
+        max-height: 85vh;
+        user-select: none;
+      }
+
+      /* Draft rectangle drawn while creating a new hotspot */
+      #draft {
+        position: absolute;
+        border: 2px dashed #fc0;
+        background: rgba(255, 204, 0, 0.12);
+        pointer-events: none;
+        display: none;
+      }
+
+      /* ── Hotspot ──────────────────────────────────────────── */
+      .hotspot {
+        position: absolute;
+        border: 2px solid transparent;
+        border-radius: 3px;
+      }
+
+      /* Tooltip */
+      .hotspot .tip {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.88);
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 50;
+      }
+      .hotspot .tip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.88);
+      }
+      /* Show tooltip on hover in viewer mode only */
+      body:not(.editing) .hotspot:hover .tip {
+        display: block;
+      }
+
+      /* Resize handle (bottom-right corner) */
+      .hotspot .rz {
+        display: none;
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        width: 12px;
+        height: 12px;
+        background: #fc0;
+        border: 1px solid #000;
+        cursor: se-resize;
+        z-index: 3;
+      }
+
+      /* Delete button (top-right corner) */
+      .hotspot .del {
+        display: none;
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 16px;
+        height: 16px;
+        background: #e33;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        font-size: 11px;
+        line-height: 16px;
+        text-align: center;
+        cursor: pointer;
+        z-index: 3;
+        padding: 0;
+      }
+
+      /* Editor mode overrides */
+      body.editing #container {
+        cursor: crosshair;
+      }
+      body.editing .hotspot {
+        border-color: rgba(255, 204, 0, 0.85);
+        background: rgba(255, 204, 0, 0.08);
+        cursor: move;
+      }
+      body.editing .hotspot .rz {
+        display: block;
+      }
+      body.editing .hotspot .del {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toolbar">
+      <button id="btn-copy">Copy JSON</button>
+      <button id="btn-exit">Exit Editor</button>
+      <span
+        >Drag empty area to add &nbsp;·&nbsp; Drag hotspot to move &nbsp;·&nbsp;
+        Corner handle to resize &nbsp;·&nbsp; Right-click hotspot to edit
+        tooltip &nbsp;·&nbsp; × to delete</span
+      >
+    </div>
+
+    <div id="stage">
+      <div id="container">
+        <img
+          id="photo"
+          src="frames.jpg"
+          alt="Framed photographs"
+          draggable="false"
+        />
+        <div id="draft"></div>
+      </div>
+      <button id="btn-edit">Edit Hotspots</button>
+    </div>
+
+    <script>
+      const HOTSPOTS_URL = "hotspots.json";
+      let hotspots = [];
+      let editing = false;
+
+      const container = document.getElementById("container");
+      const draft = document.getElementById("draft");
+      const btnEdit = document.getElementById("btn-edit");
+      const btnCopy = document.getElementById("btn-copy");
+      const btnExit = document.getElementById("btn-exit");
+      const toolbar = document.getElementById("toolbar");
+
+      // ── Load ────────────────────────────────────────────────────
+      fetch(HOTSPOTS_URL)
+        .then((r) => r.json())
+        .then((data) => {
+          hotspots = data;
+          render();
+        })
+        .catch(() => {
+          hotspots = [];
+        });
+
+      // ── Editor toggle ───────────────────────────────────────────
+      function setEditing(on) {
+        editing = on;
+        document.body.classList.toggle("editing", on);
+        toolbar.classList.toggle("visible", on);
+        btnEdit.style.visibility = on ? "hidden" : "visible";
+      }
+
+      btnEdit.addEventListener("click", () => setEditing(true));
+      btnExit.addEventListener("click", () => setEditing(false));
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && editing) setEditing(false);
+        if (
+          (e.key === "e" || e.key === "E") &&
+          !editing &&
+          !e.target.matches("input,textarea")
+        )
+          setEditing(true);
+      });
+
+      // ── Render ──────────────────────────────────────────────────
+      function render() {
+        document.querySelectorAll(".hotspot").forEach((el) => el.remove());
+        hotspots.forEach((hs, i) => makeHotspot(hs, i));
+      }
+
+      function applyPos(el, hs) {
+        el.style.left = hs.x + "%";
+        el.style.top = hs.y + "%";
+        el.style.width = hs.w + "%";
+        el.style.height = hs.h + "%";
+      }
+
+      function makeHotspot(hs, i) {
+        const el = document.createElement("div");
+        el.className = "hotspot";
+
+        const tip = document.createElement("div");
+        tip.className = "tip";
+        tip.textContent = hs.tooltip;
+        el.appendChild(tip);
+
+        const rz = document.createElement("div");
+        rz.className = "rz";
+        el.appendChild(rz);
+
+        const del = document.createElement("button");
+        del.className = "del";
+        del.textContent = "×";
+        del.title = "Delete hotspot";
+        el.appendChild(del);
+
+        applyPos(el, hs);
+        container.insertBefore(el, draft);
+
+        // ── Move ──
+        el.addEventListener("mousedown", (e) => {
+          if (!editing || e.target === rz || e.target === del) return;
+          e.stopPropagation();
+          const cRect = container.getBoundingClientRect();
+          const ox = e.clientX,
+            oy = e.clientY;
+          const ox_pct = hs.x,
+            oy_pct = hs.y;
+          let moved = false;
+
+          function onMove(e) {
+            moved = true;
+            hs.x = clamp(
+              ox_pct + ((e.clientX - ox) / cRect.width) * 100,
+              0,
+              100 - hs.w,
+            );
+            hs.y = clamp(
+              oy_pct + ((e.clientY - oy) / cRect.height) * 100,
+              0,
+              100 - hs.h,
+            );
+            applyPos(el, hs);
+          }
+          function onUp() {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            // Click (no drag) → edit tooltip
+            if (!moved) {
+              const val = prompt("Edit tooltip text:", hs.tooltip);
+              if (val !== null) {
+                hs.tooltip = val;
+                tip.textContent = val;
+              }
+            }
+          }
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+
+        // Right-click → edit tooltip (alternative to click)
+        el.addEventListener("contextmenu", (e) => {
+          if (!editing) return;
+          e.preventDefault();
+          const val = prompt("Edit tooltip text:", hs.tooltip);
+          if (val !== null) {
+            hs.tooltip = val;
+            tip.textContent = val;
+          }
+        });
+
+        // ── Resize ──
+        rz.addEventListener("mousedown", (e) => {
+          if (!editing) return;
+          e.stopPropagation();
+          const cRect = container.getBoundingClientRect();
+          const ox = e.clientX,
+            oy = e.clientY;
+          const ow = hs.w,
+            oh = hs.h;
+
+          function onMove(e) {
+            hs.w = Math.max(2, ow + ((e.clientX - ox) / cRect.width) * 100);
+            hs.h = Math.max(2, oh + ((e.clientY - oy) / cRect.height) * 100);
+            applyPos(el, hs);
+          }
+          function onUp() {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+          }
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+
+        // ── Delete ──
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          hotspots.splice(i, 1);
+          render();
+        });
+      }
+
+      // ── Draw new hotspot ────────────────────────────────────────
+      let drawing = false,
+        drawStart = {};
+
+      container.addEventListener("mousedown", (e) => {
+        if (!editing || e.target.closest(".hotspot")) return;
+        e.preventDefault();
+        const cRect = container.getBoundingClientRect();
+        drawStart = {
+          x: ((e.clientX - cRect.left) / cRect.width) * 100,
+          y: ((e.clientY - cRect.top) / cRect.height) * 100,
+        };
+        drawing = true;
+        draft.style.display = "block";
+        draft.style.left = drawStart.x + "%";
+        draft.style.top = drawStart.y + "%";
+        draft.style.width = "0";
+        draft.style.height = "0";
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!drawing) return;
+        const cRect = container.getBoundingClientRect();
+        const cx = ((e.clientX - cRect.left) / cRect.width) * 100;
+        const cy = ((e.clientY - cRect.top) / cRect.height) * 100;
+        const rect = getDraftRect(cx, cy);
+        draft.style.left = rect.x + "%";
+        draft.style.top = rect.y + "%";
+        draft.style.width = rect.w + "%";
+        draft.style.height = rect.h + "%";
+      });
+
+      document.addEventListener("mouseup", (e) => {
+        if (!drawing) return;
+        drawing = false;
+        draft.style.display = "none";
+
+        const cRect = container.getBoundingClientRect();
+        const cx = ((e.clientX - cRect.left) / cRect.width) * 100;
+        const cy = ((e.clientY - cRect.top) / cRect.height) * 100;
+        const rect = getDraftRect(cx, cy);
+        if (rect.w < 1 || rect.h < 1) return;
+
+        const tooltip = prompt("Tooltip text for this photo:");
+        if (!tooltip || !tooltip.trim()) return;
+
+        hotspots.push({
+          x: round(rect.x),
+          y: round(rect.y),
+          w: round(rect.w),
+          h: round(rect.h),
+          tooltip: tooltip.trim(),
+        });
+        render();
+      });
+
+      function getDraftRect(cx, cy) {
+        return {
+          x: Math.min(drawStart.x, cx),
+          y: Math.min(drawStart.y, cy),
+          w: Math.abs(cx - drawStart.x),
+          h: Math.abs(cy - drawStart.y),
+        };
+      }
+
+      // ── Copy JSON ───────────────────────────────────────────────
+      btnCopy.addEventListener("click", () => {
+        const clean = hotspots.map((hs) => ({
+          x: round(hs.x),
+          y: round(hs.y),
+          w: round(hs.w),
+          h: round(hs.h),
+          tooltip: hs.tooltip,
+        }));
+        navigator.clipboard
+          .writeText(JSON.stringify(clean, null, 2))
+          .then(() => {
+            btnCopy.textContent = "Copied!";
+            setTimeout(() => (btnCopy.textContent = "Copy JSON"), 2000);
+          });
+      });
+
+      // ── Helpers ─────────────────────────────────────────────────
+      function clamp(v, lo, hi) {
+        return Math.min(Math.max(v, lo), hi);
+      }
+      function round(v) {
+        return Math.round(v * 1000) / 1000;
+      }
+    </script>
+  </body>
+</html>
