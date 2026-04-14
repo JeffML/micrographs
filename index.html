@@ -186,6 +186,8 @@
   <body>
     <div id="toolbar">
       <button id="btn-save">Save</button>
+      <button id="btn-upload">Upload Photo</button>
+      <input id="file-input" type="file" accept="image/*" style="display:none">
       <button id="btn-exit">Exit Editor</button>
       <span
         >Drag empty area to add &nbsp;·&nbsp; Drag hotspot to move &nbsp;·&nbsp;
@@ -198,7 +200,7 @@
       <div id="container">
         <img
           id="photo"
-          src="frames.jpg"
+          src="/api/image"
           alt="Framed photographs"
           draggable="false"
         />
@@ -217,9 +219,12 @@
 
       const container = document.getElementById("container");
       const draft = document.getElementById("draft");
-      const btnSave = document.getElementById("btn-save");
-      const btnExit = document.getElementById("btn-exit");
-      const toolbar = document.getElementById("toolbar");
+      const btnSave   = document.getElementById("btn-save");
+      const btnUpload  = document.getElementById("btn-upload");
+      const fileInput  = document.getElementById("file-input");
+      const btnExit    = document.getElementById("btn-exit");
+      const toolbar    = document.getElementById("toolbar");
+      const photo      = document.getElementById("photo");
 
       // ── Load ────────────────────────────────────────────────────
       fetch("/api/hotspots")
@@ -247,6 +252,47 @@
       }
 
       btnExit.addEventListener("click", () => setEditing(false));
+
+      // ── Upload photo ──────────────────────────────────────────
+      btnUpload.addEventListener("click", () => fileInput.click());
+
+      fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        btnUpload.textContent = "Uploading…";
+        btnUpload.disabled = true;
+        try {
+          const res = await fetch("/api/image", {
+            method: "POST",
+            headers: {
+              "Content-Type": file.type || "image/jpeg",
+              "x-editor-password": editorPassword,
+            },
+            body: file,
+          });
+          if (res.ok) {
+            // Reload image without refreshing the page
+            photo.src = "/api/image?t=" + Date.now();
+            btnUpload.textContent = "Uploaded!";
+            setTimeout(() => { btnUpload.textContent = "Upload Photo"; btnUpload.disabled = false; }, 2000);
+          } else if (res.status === 401) {
+            alert("Incorrect password.");
+            editorPassword = null;
+            setEditing(false);
+            btnUpload.textContent = "Upload Photo";
+            btnUpload.disabled = false;
+          } else {
+            alert("Upload failed. Please try again.");
+            btnUpload.textContent = "Upload Photo";
+            btnUpload.disabled = false;
+          }
+        } catch {
+          alert("Network error. Please try again.");
+          btnUpload.textContent = "Upload Photo";
+          btnUpload.disabled = false;
+        }
+        fileInput.value = "";
+      });
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && editing) setEditing(false);
         if ((e.key === "e" || e.key === "E") && e.shiftKey && e.altKey && !editing)
