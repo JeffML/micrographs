@@ -58,14 +58,24 @@
         font-size: 13px;
         letter-spacing: 0.03em;
       }
-      body.editing #hint { display: none; }
+      body.editing #hint {
+        display: none;
+      }
 
       /* Touch hint shown by default; swap to hover hint on real mouse devices */
-      #hint-hover { display: none; }
-      #hint-touch { display: inline; }
+      #hint-hover {
+        display: none;
+      }
+      #hint-touch {
+        display: inline;
+      }
       @media (hover: hover) and (pointer: fine) {
-        #hint-hover { display: inline; }
-        #hint-touch { display: none; }
+        #hint-hover {
+          display: inline;
+        }
+        #hint-touch {
+          display: none;
+        }
       }
 
       #container {
@@ -187,7 +197,12 @@
     <div id="toolbar">
       <button id="btn-save">Save</button>
       <button id="btn-upload">Upload Photo</button>
-      <input id="file-input" type="file" accept="image/*" style="display:none">
+      <input
+        id="file-input"
+        type="file"
+        accept="image/*"
+        style="display: none"
+      />
       <button id="btn-exit">Exit Editor</button>
       <span
         >Drag empty area to add &nbsp;·&nbsp; Drag hotspot to move &nbsp;·&nbsp;
@@ -219,12 +234,12 @@
 
       const container = document.getElementById("container");
       const draft = document.getElementById("draft");
-      const btnSave   = document.getElementById("btn-save");
-      const btnUpload  = document.getElementById("btn-upload");
-      const fileInput  = document.getElementById("file-input");
-      const btnExit    = document.getElementById("btn-exit");
-      const toolbar    = document.getElementById("toolbar");
-      const photo      = document.getElementById("photo");
+      const btnSave = document.getElementById("btn-save");
+      const btnUpload = document.getElementById("btn-upload");
+      const fileInput = document.getElementById("file-input");
+      const btnExit = document.getElementById("btn-exit");
+      const toolbar = document.getElementById("toolbar");
+      const photo = document.getElementById("photo");
 
       // ── Load ────────────────────────────────────────────────────
       fetch("/api/hotspots")
@@ -274,7 +289,10 @@
             // Reload image without refreshing the page
             photo.src = "/api/image?t=" + Date.now();
             btnUpload.textContent = "Uploaded!";
-            setTimeout(() => { btnUpload.textContent = "Upload Photo"; btnUpload.disabled = false; }, 2000);
+            setTimeout(() => {
+              btnUpload.textContent = "Upload Photo";
+              btnUpload.disabled = false;
+            }, 2000);
           } else if (res.status === 401) {
             alert("Incorrect password.");
             editorPassword = null;
@@ -295,7 +313,12 @@
       });
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && editing) setEditing(false);
-        if ((e.key === "e" || e.key === "E") && e.shiftKey && e.altKey && !editing)
+        if (
+          (e.key === "e" || e.key === "E") &&
+          e.shiftKey &&
+          e.altKey &&
+          !editing
+        )
           tryEnterEditor();
       });
 
@@ -354,19 +377,32 @@
         // ── Move (mouse + touch) ──
         function beginMove(startX, startY) {
           const cRect = container.getBoundingClientRect();
-          const ox = startX, oy = startY;
-          const ox_pct = hs.x, oy_pct = hs.y;
+          const ox = startX,
+            oy = startY;
+          const ox_pct = hs.x,
+            oy_pct = hs.y;
           let moved = false;
           function doMove(cx, cy) {
             moved = true;
-            hs.x = clamp(ox_pct + ((cx - ox) / cRect.width) * 100, 0, 100 - hs.w);
-            hs.y = clamp(oy_pct + ((cy - oy) / cRect.height) * 100, 0, 100 - hs.h);
+            hs.x = clamp(
+              ox_pct + ((cx - ox) / cRect.width) * 100,
+              0,
+              100 - hs.w,
+            );
+            hs.y = clamp(
+              oy_pct + ((cy - oy) / cRect.height) * 100,
+              0,
+              100 - hs.h,
+            );
             applyPos(el, hs);
           }
           function doEnd() {
             if (!moved) {
               const val = prompt("Edit tooltip text:", hs.tooltip);
-              if (val !== null) { hs.tooltip = val; tip.textContent = val; }
+              if (val !== null) {
+                hs.tooltip = val;
+                tip.textContent = val;
+              }
             }
           }
           return { doMove, doEnd };
@@ -376,7 +412,9 @@
           if (!editing || e.target === rz || e.target === del) return;
           e.stopPropagation();
           const { doMove, doEnd } = beginMove(e.clientX, e.clientY);
-          function mm(e) { doMove(e.clientX, e.clientY); }
+          function mm(e) {
+            doMove(e.clientX, e.clientY);
+          }
           function mu() {
             document.removeEventListener("mousemove", mm);
             document.removeEventListener("mouseup", mu);
@@ -386,21 +424,28 @@
           document.addEventListener("mouseup", mu);
         });
 
-        el.addEventListener("touchstart", (e) => {
-          if (!editing || e.target === rz || e.target === del) return;
-          e.stopPropagation();
-          e.preventDefault();
-          const t = e.touches[0];
-          const { doMove, doEnd } = beginMove(t.clientX, t.clientY);
-          function tm(e) { const t = e.touches[0]; doMove(t.clientX, t.clientY); }
-          function tu() {
-            document.removeEventListener("touchmove", tm);
-            document.removeEventListener("touchend", tu);
-            doEnd();
-          }
-          document.addEventListener("touchmove", tm, { passive: false });
-          document.addEventListener("touchend", tu);
-        }, { passive: false });
+        el.addEventListener(
+          "touchstart",
+          (e) => {
+            if (!editing || e.target === rz || e.target === del) return;
+            e.stopPropagation();
+            e.preventDefault();
+            const t = e.touches[0];
+            const { doMove, doEnd } = beginMove(t.clientX, t.clientY);
+            function tm(e) {
+              const t = e.touches[0];
+              doMove(t.clientX, t.clientY);
+            }
+            function tu() {
+              document.removeEventListener("touchmove", tm);
+              document.removeEventListener("touchend", tu);
+              doEnd();
+            }
+            document.addEventListener("touchmove", tm, { passive: false });
+            document.addEventListener("touchend", tu);
+          },
+          { passive: false },
+        );
 
         // Right-click → edit tooltip (alternative to click)
         el.addEventListener("contextmenu", (e) => {
@@ -416,7 +461,10 @@
         // ── Resize (mouse + touch) ──
         function beginResize(startX, startY) {
           const cRect = container.getBoundingClientRect();
-          const ox = startX, oy = startY, ow = hs.w, oh = hs.h;
+          const ox = startX,
+            oy = startY,
+            ow = hs.w,
+            oh = hs.h;
           function doMove(cx, cy) {
             hs.w = Math.max(2, ow + ((cx - ox) / cRect.width) * 100);
             hs.h = Math.max(2, oh + ((cy - oy) / cRect.height) * 100);
@@ -429,7 +477,9 @@
           if (!editing) return;
           e.stopPropagation();
           const { doMove } = beginResize(e.clientX, e.clientY);
-          function mm(e) { doMove(e.clientX, e.clientY); }
+          function mm(e) {
+            doMove(e.clientX, e.clientY);
+          }
           function mu() {
             document.removeEventListener("mousemove", mm);
             document.removeEventListener("mouseup", mu);
@@ -438,20 +488,27 @@
           document.addEventListener("mouseup", mu);
         });
 
-        rz.addEventListener("touchstart", (e) => {
-          if (!editing) return;
-          e.stopPropagation();
-          e.preventDefault();
-          const t = e.touches[0];
-          const { doMove } = beginResize(t.clientX, t.clientY);
-          function tm(e) { const t = e.touches[0]; doMove(t.clientX, t.clientY); }
-          function tu() {
-            document.removeEventListener("touchmove", tm);
-            document.removeEventListener("touchend", tu);
-          }
-          document.addEventListener("touchmove", tm, { passive: false });
-          document.addEventListener("touchend", tu);
-        }, { passive: false });
+        rz.addEventListener(
+          "touchstart",
+          (e) => {
+            if (!editing) return;
+            e.stopPropagation();
+            e.preventDefault();
+            const t = e.touches[0];
+            const { doMove } = beginResize(t.clientX, t.clientY);
+            function tm(e) {
+              const t = e.touches[0];
+              doMove(t.clientX, t.clientY);
+            }
+            function tu() {
+              document.removeEventListener("touchmove", tm);
+              document.removeEventListener("touchend", tu);
+            }
+            document.addEventListener("touchmove", tm, { passive: false });
+            document.addEventListener("touchend", tu);
+          },
+          { passive: false },
+        );
 
         // ── Delete ──
         del.addEventListener("click", (e) => {
@@ -462,7 +519,8 @@
       }
 
       // ── Draw new hotspot (mouse + touch) ──────────────────────
-      let drawing = false, drawStart = {};
+      let drawing = false,
+        drawStart = {};
 
       function beginDraw(clientX, clientY) {
         const cRect = container.getBoundingClientRect();
@@ -502,8 +560,10 @@
         const tooltip = prompt("Tooltip text for this photo:");
         if (!tooltip || !tooltip.trim()) return;
         hotspots.push({
-          x: round(rect.x), y: round(rect.y),
-          w: round(rect.w), h: round(rect.h),
+          x: round(rect.x),
+          y: round(rect.y),
+          w: round(rect.w),
+          h: round(rect.h),
           tooltip: tooltip.trim(),
         });
         render();
@@ -514,21 +574,33 @@
         e.preventDefault();
         beginDraw(e.clientX, e.clientY);
       });
-      document.addEventListener("mousemove", (e) => { moveDraw(e.clientX, e.clientY); });
-      document.addEventListener("mouseup",   (e) => { endDraw(e.clientX, e.clientY); });
+      document.addEventListener("mousemove", (e) => {
+        moveDraw(e.clientX, e.clientY);
+      });
+      document.addEventListener("mouseup", (e) => {
+        endDraw(e.clientX, e.clientY);
+      });
 
-      container.addEventListener("touchstart", (e) => {
-        if (!editing || e.target.closest(".hotspot")) return;
-        e.preventDefault();
-        const t = e.touches[0];
-        beginDraw(t.clientX, t.clientY);
-      }, { passive: false });
-      document.addEventListener("touchmove", (e) => {
-        if (!drawing) return;
-        e.preventDefault();
-        const t = e.touches[0];
-        moveDraw(t.clientX, t.clientY);
-      }, { passive: false });
+      container.addEventListener(
+        "touchstart",
+        (e) => {
+          if (!editing || e.target.closest(".hotspot")) return;
+          e.preventDefault();
+          const t = e.touches[0];
+          beginDraw(t.clientX, t.clientY);
+        },
+        { passive: false },
+      );
+      document.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!drawing) return;
+          e.preventDefault();
+          const t = e.touches[0];
+          moveDraw(t.clientX, t.clientY);
+        },
+        { passive: false },
+      );
       document.addEventListener("touchend", (e) => {
         if (!drawing) return;
         const t = e.changedTouches[0];

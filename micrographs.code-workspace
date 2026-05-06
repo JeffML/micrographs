@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": ".",
+    },
+    {
+      "path": "../microAlbum",
+    },
+    {
+      "path": "../GooglePix",
+    },
+    {
+      "path": "../../../mnt/chromeos/GoogleDrive/MyDrive/albums-micro",
+    },
+  ],
+  "settings": {},
+}
