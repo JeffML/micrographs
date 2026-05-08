@@ -417,6 +417,10 @@
       let hotspots = [];
       let editing = false;
       let editorPassword = null;
+      let dirty = false;
+
+      function markDirty() { dirty = true; }
+      function clearDirty() { dirty = false; }
 
       const container = document.getElementById("container");
       const draft = document.getElementById("draft");
@@ -426,6 +430,14 @@
       const btnExit = document.getElementById("btn-exit");
       const toolbar = document.getElementById("toolbar");
       const photo = document.getElementById("photo");
+
+      // ── Unsaved changes warning on page unload ─────────────────
+      window.addEventListener("beforeunload", (e) => {
+        if (editing && dirty) {
+          e.preventDefault();
+          e.returnValue = "";
+        }
+      });
 
       // ── Footer copyright ──────────────────────────────────────
       document.getElementById("footer").textContent =
@@ -444,7 +456,11 @@
 
       // ── Editor toggle ───────────────────────────────────────────
       function setEditing(on) {
+        if (!on && dirty) {
+          if (!confirm("You have unsaved changes. Exit without saving?")) return;
+        }
         editing = on;
+        if (!on) clearDirty();
         document.body.classList.toggle("editing", on);
         toolbar.classList.toggle("visible", on);
       }
@@ -611,6 +627,7 @@
               100 - hs.h,
             );
             applyPos(el, hs);
+            markDirty();
           }
           function doEnd() {
             if (!moved) openEditModal(hs);
@@ -674,6 +691,7 @@
             hs.w = Math.max(2, ow + ((cx - ox) / cRect.width) * 100);
             hs.h = Math.max(2, oh + ((cy - oy) / cRect.height) * 100);
             applyPos(el, hs);
+            markDirty();
           }
           return { doMove };
         }
@@ -719,6 +737,7 @@
         del.addEventListener("click", (e) => {
           e.stopPropagation();
           hotspots.splice(i, 1);
+          markDirty();
           render();
         });
       }
@@ -776,6 +795,7 @@
           price: "",
         };
         hotspots.push(hs);
+        markDirty();
         render();
         openEditModal(hs);
       }
@@ -852,6 +872,7 @@
           });
           if (res.ok) {
             btnSave.textContent = "Saved!";
+            clearDirty();
             setTimeout(() => {
               btnSave.textContent = "Save";
               btnSave.disabled = false;
@@ -978,6 +999,7 @@
             .filter(Boolean);
           hs.notes = efNotes.value.trim();
           hs.price = efPrice.value.trim();
+          markDirty();
           closeEditModal();
           render();
         }
