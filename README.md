@@ -1,63 +1,75 @@
 # Micrographs Photo Wall
 
-An interactive photo wall where each framed photograph has a hover tooltip.
+An interactive photo wall where each framed photograph has a clickable popup with structured metadata.
 
 ## Files
 
-| File            | Purpose                            |
-| --------------- | ---------------------------------- |
-| `index.html`    | The viewer/editor page             |
-| `hotspots.json` | Hotspot positions and tooltip text |
-| `frames.jpg`    | The wall photo                     |
+| File            | Purpose                                       |
+| --------------- | --------------------------------------------- |
+| `index.html`    | The viewer/editor page                        |
+| `hotspots.json` | Fallback hotspot data (used when blobs empty) |
+| `frames.jpg`    | Fallback wall photo (used when blobs empty)   |
 
 ---
 
-## First-Time Setup
+## Workflow
 
-1. Add your wall photo to this folder as `frames.jpg`
-2. Deploy the folder to Netlify
-3. Open the live site
-4. Follow **Adding Hotspots** below
-5. Follow **Saving Hotspots** below
+| Task                  | How                                             |
+| --------------------- | ----------------------------------------------- |
+| **Local dev**         | `netlify dev` → `http://localhost:8888`         |
+| **Test UI changes**   | Use local dev (editor-safe, isolated blobs)     |
+| **Draft deploy**      | `netlify deploy` — viewer mode only, no editing |
+| **Production deploy** | `netlify deploy --prod` or push to GitHub       |
+| **Live editing**      | Use the production site directly                |
+
+> ⚠ Draft deploys share production blobs — don't use editor mode on a draft.
+
+---
+
+## Editor Access
+
+| Platform | Trigger                     |
+| -------- | --------------------------- |
+| Desktop  | **Shift+Alt+E**             |
+| Mobile   | 5 taps anywhere on the page |
+
+Password is validated against the server on entry. To reset the password:
+
+1. `echo -n "newpassword" | sha256sum`
+2. Update `EDITOR_PASSWORD_HASH` in Netlify → Site configuration → Environment variables
+3. Redeploy
 
 ---
 
 ## Adding / Editing Hotspots
 
-1. Open the site in a browser
-2. Press **Shift+Alt+E** to open the editor password prompt, then enter the password
-3. **Draw** a hotspot: click and drag a rectangle over a photo frame → enter tooltip text when prompted
-4. **Move** a hotspot: drag it to a new position
+1. Enter editor mode (see above)
+2. **Draw** a hotspot: drag a rectangle over a photo frame → edit modal opens automatically
+3. **Edit** a hotspot: click it (without dragging) → edit modal opens
+4. **Move** a hotspot: drag it
 5. **Resize** a hotspot: drag the yellow corner handle
-6. **Edit tooltip text**: click the hotspot (without dragging) or right-click it
-7. **Delete** a hotspot: click the red **×** button in its corner
-8. Press **Escape** or click **Exit Editor** when done
+6. **Delete** a hotspot: click the red **×** button
+7. Click **Save** in the toolbar when done, or **Exit Editor** / **Escape** to discard
 
 ---
 
-## Saving Hotspots
+## Hotspot Edit Fields
 
-Click **Save** in the editor toolbar. The function verifies your password server-side and saves directly to Netlify Blobs — no git push needed.
-
----
-
-## Updating the Photo (frames.jpg)
-
-Use this procedure when the photo changes and frame positions have shifted:
-
-1. Replace `frames.jpg` with the new photo (keep the same filename)
-2. Deploy to Netlify
-3. Open the live site — existing hotspots will likely be misaligned
-4. Press **E** to enter editor mode
-5. Delete misaligned hotspots (red **×**) and redraw them over the new frame positions
-   — or drag/resize existing ones into the correct positions
-6. Follow **Saving Hotspots** above
+| Field         | Description                                    |
+| ------------- | ---------------------------------------------- |
+| Hover label   | Short text shown on mouse hover                |
+| Subject       | Full description of the subject                |
+| Magnification | e.g. `40x`, `100x`                             |
+| Lighting      | Comma-separated: e.g. `darkfield, brightfield` |
+| Tags          | Comma-separated keywords                       |
+| Notes         | Free-form notes                                |
+| Price         | e.g. `$250` (shown highlighted in popup)       |
 
 ---
 
-## Tooltip Format
+## Hotspot Data Format
 
-`hotspots.json` is a JSON array. Each entry has:
+`hotspots.json` is the fallback for local dev when blobs are empty. Format:
 
 ```json
 [
@@ -66,9 +78,23 @@ Use this procedure when the photo changes and frame positions have shifted:
     "y": 8.1,
     "w": 18.4,
     "h": 24.6,
-    "tooltip": "Description shown on hover"
+    "tooltip": "Hover label",
+    "subject": "Full subject description",
+    "magnification": "40x",
+    "lighting": ["darkfield", "brightfield"],
+    "tags": ["flower"],
+    "notes": "Any notes",
+    "price": "$250"
   }
 ]
 ```
 
-`x`, `y`, `w`, `h` are percentages of the image width/height, so hotspots scale correctly at any screen size.
+`x`, `y`, `w`, `h` are percentages of image dimensions — hotspots scale at any screen size.
+
+---
+
+## Updating the Wall Photo
+
+1. Enter editor mode → click **Upload Photo** in the toolbar
+2. Realign any misaligned hotspots (drag/resize or delete and redraw)
+3. Click **Save**

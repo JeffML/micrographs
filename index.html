@@ -191,6 +191,127 @@
       body.editing .hotspot .del {
         display: block;
       }
+
+      /* ── Viewer mode hotspot ─────────────────────────────────── */
+      body:not(.editing) .hotspot {
+        cursor: pointer;
+      }
+
+      /* ── Popup overlay ───────────────────────────────────────── */
+      #popup-overlay,
+      #edit-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+      }
+      #popup-overlay.open,
+      #edit-overlay.open {
+        display: flex;
+      }
+      .popup-box {
+        background: #1e1e1e;
+        color: #e8e8e8;
+        border-radius: 10px;
+        padding: 24px 28px;
+        max-width: 420px;
+        width: 90vw;
+        position: relative;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .popup-close {
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 22px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+      }
+      .popup-close:hover {
+        color: #fff;
+      }
+      .popup-field {
+        margin-bottom: 10px;
+      }
+      .popup-field .label {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 3px;
+      }
+      .popup-field .value {
+        font-size: 15px;
+        color: #e0e0e0;
+      }
+      .popup-price {
+        font-size: 20px;
+        font-weight: 600;
+        color: #fc0;
+        margin-top: 14px;
+      }
+      /* Edit modal form */
+      .edit-form label {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 12px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #999;
+        gap: 4px;
+      }
+      .edit-form input,
+      .edit-form textarea {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 4px;
+        color: #e0e0e0;
+        font-size: 14px;
+        padding: 6px 10px;
+        font-family: inherit;
+        text-transform: none;
+        letter-spacing: normal;
+      }
+      .edit-form textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+      .edit-form input:focus,
+      .edit-form textarea:focus {
+        outline: none;
+        border-color: #fc0;
+      }
+      .edit-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .edit-buttons button {
+        padding: 6px 18px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        border: none;
+      }
+      #ef-cancel {
+        background: #333;
+        color: #ccc;
+      }
+      #ef-save {
+        background: #fc0;
+        color: #000;
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
@@ -206,8 +327,8 @@
       <button id="btn-exit">Exit Editor</button>
       <span
         >Drag empty area to add &nbsp;·&nbsp; Drag hotspot to move &nbsp;·&nbsp;
-        Corner handle to resize &nbsp;·&nbsp; Right-click hotspot to edit
-        tooltip &nbsp;·&nbsp; × to delete</span
+        Corner handle to resize &nbsp;·&nbsp; Click hotspot to edit
+        &nbsp;·&nbsp; × to delete</span
       >
     </div>
 
@@ -225,6 +346,56 @@
         <span id="hint-hover">Hover over any photograph for more info</span>
         <span id="hint-touch">Tap any photograph for more info</span>
       </p>
+    </div>
+
+    <!-- Viewer popup -->
+    <div id="popup-overlay">
+      <div class="popup-box">
+        <button class="popup-close" id="popup-close">×</button>
+        <div id="popup-body"></div>
+      </div>
+    </div>
+
+    <!-- Editor modal -->
+    <div id="edit-overlay">
+      <div class="popup-box edit-form">
+        <button class="popup-close" id="ef-cancel-x">×</button>
+        <h3
+          style="
+            margin-bottom: 16px;
+            font-weight: 500;
+            font-size: 16px;
+            color: #ccc;
+          "
+        >
+          Edit Hotspot
+        </h3>
+        <label>Hover label<input id="ef-tooltip" type="text" /></label>
+        <label>Subject<input id="ef-subject" type="text" /></label>
+        <label>Magnification<input id="ef-magnification" type="text" /></label>
+        <label
+          >Lighting
+          <small
+            style="text-transform: none; letter-spacing: normal; color: #666"
+            >(comma-separated)</small
+          ><input id="ef-lighting" type="text"
+        /></label>
+        <label
+          >Tags
+          <small
+            style="text-transform: none; letter-spacing: normal; color: #666"
+            >(comma-separated)</small
+          ><input id="ef-tags" type="text"
+        /></label>
+        <label>Notes<textarea id="ef-notes"></textarea></label>
+        <label
+          >Price<input id="ef-price" type="text" placeholder="e.g. $250"
+        /></label>
+        <div class="edit-buttons">
+          <button id="ef-cancel">Cancel</button>
+          <button id="ef-save">Save</button>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -259,11 +430,24 @@
         toolbar.classList.toggle("visible", on);
       }
 
-      function tryEnterEditor() {
+      async function tryEnterEditor() {
         const pw = prompt("Editor password:");
         if (!pw) return;
-        editorPassword = pw;
-        setEditing(true);
+        try {
+          const res = await fetch("/api/hotspots", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pw, validate: true }),
+          });
+          if (res.ok) {
+            editorPassword = pw;
+            setEditing(true);
+          } else {
+            alert("Incorrect password.");
+          }
+        } catch {
+          alert("Network error. Could not validate password.");
+        }
       }
 
       btnExit.addEventListener("click", () => setEditing(false));
@@ -312,7 +496,20 @@
         fileInput.value = "";
       });
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && editing) setEditing(false);
+        if (e.key === "Escape") {
+          if (
+            document.getElementById("edit-overlay").classList.contains("open")
+          ) {
+            closeEditModal();
+          } else if (
+            document.getElementById("popup-overlay").classList.contains("open")
+          ) {
+            closePopup();
+          } else if (editing) {
+            setEditing(false);
+          }
+          return;
+        }
         if (
           (e.key === "e" || e.key === "E") &&
           e.shiftKey &&
@@ -397,13 +594,7 @@
             applyPos(el, hs);
           }
           function doEnd() {
-            if (!moved) {
-              const val = prompt("Edit tooltip text:", hs.tooltip);
-              if (val !== null) {
-                hs.tooltip = val;
-                tip.textContent = val;
-              }
-            }
+            if (!moved) openEditModal(hs);
           }
           return { doMove, doEnd };
         }
@@ -447,15 +638,10 @@
           { passive: false },
         );
 
-        // Right-click → edit tooltip (alternative to click)
-        el.addEventListener("contextmenu", (e) => {
-          if (!editing) return;
-          e.preventDefault();
-          const val = prompt("Edit tooltip text:", hs.tooltip);
-          if (val !== null) {
-            hs.tooltip = val;
-            tip.textContent = val;
-          }
+        // Viewer mode click → open popup
+        el.addEventListener("click", (e) => {
+          if (editing) return;
+          openViewerPopup(hs);
         });
 
         // ── Resize (mouse + touch) ──
@@ -557,16 +743,22 @@
         const cy = ((clientY - cRect.top) / cRect.height) * 100;
         const rect = getDraftRect(cx, cy);
         if (rect.w < 1 || rect.h < 1) return;
-        const tooltip = prompt("Tooltip text for this photo:");
-        if (!tooltip || !tooltip.trim()) return;
-        hotspots.push({
+        const hs = {
           x: round(rect.x),
           y: round(rect.y),
           w: round(rect.w),
           h: round(rect.h),
-          tooltip: tooltip.trim(),
-        });
+          tooltip: "",
+          subject: "",
+          magnification: "",
+          lighting: [],
+          tags: [],
+          notes: "",
+          price: "",
+        };
+        hotspots.push(hs);
         render();
+        openEditModal(hs);
       }
 
       container.addEventListener("mousedown", (e) => {
@@ -623,7 +815,13 @@
           y: round(hs.y),
           w: round(hs.w),
           h: round(hs.h),
-          tooltip: hs.tooltip,
+          tooltip: hs.tooltip || "",
+          subject: hs.subject || "",
+          magnification: hs.magnification || "",
+          lighting: hs.lighting || [],
+          tags: hs.tags || [],
+          notes: hs.notes || "",
+          price: hs.price || "",
         }));
         btnSave.textContent = "Saving…";
         btnSave.disabled = true;
@@ -663,6 +861,122 @@
       }
       function round(v) {
         return Math.round(v * 1000) / 1000;
+      }
+
+      // ── Viewer popup ──────────────────────────────────────────────
+      const popupOverlay = document.getElementById("popup-overlay");
+      const popupBody = document.getElementById("popup-body");
+      document
+        .getElementById("popup-close")
+        .addEventListener("click", closePopup);
+      popupOverlay.addEventListener("click", (e) => {
+        if (e.target === popupOverlay) closePopup();
+      });
+      function closePopup() {
+        popupOverlay.classList.remove("open");
+      }
+
+      function openViewerPopup(hs) {
+        const fields = [
+          { label: "Subject", value: hs.subject },
+          { label: "Magnification", value: hs.magnification },
+          {
+            label: "Lighting",
+            value: Array.isArray(hs.lighting)
+              ? hs.lighting.join(", ")
+              : hs.lighting,
+          },
+          {
+            label: "Tags",
+            value: Array.isArray(hs.tags) ? hs.tags.join(", ") : hs.tags,
+          },
+          { label: "Notes", value: hs.notes },
+        ];
+        let html = "";
+        for (const f of fields) {
+          if (!f.value) continue;
+          html += `<div class="popup-field"><div class="label">${f.label}</div><div class="value">${escHtml(String(f.value))}</div></div>`;
+        }
+        if (hs.price) {
+          html += `<div class="popup-price">${escHtml(hs.price)}</div>`;
+        }
+        if (!html)
+          html =
+            '<div style="color:#888;font-style:italic">No details yet.</div>';
+        popupBody.innerHTML = html;
+        popupOverlay.classList.add("open");
+      }
+
+      function escHtml(s) {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      // ── Edit modal ────────────────────────────────────────────────
+      const editOverlay = document.getElementById("edit-overlay");
+      const efTooltip = document.getElementById("ef-tooltip");
+      const efSubject = document.getElementById("ef-subject");
+      const efMagnification = document.getElementById("ef-magnification");
+      const efLighting = document.getElementById("ef-lighting");
+      const efTags = document.getElementById("ef-tags");
+      const efNotes = document.getElementById("ef-notes");
+      const efPrice = document.getElementById("ef-price");
+      const efSave = document.getElementById("ef-save");
+      const efCancel = document.getElementById("ef-cancel");
+      const efCancelX = document.getElementById("ef-cancel-x");
+      editOverlay.addEventListener("click", (e) => {
+        if (e.target === editOverlay) closeEditModal();
+      });
+
+      function openEditModal(hs) {
+        efTooltip.value = hs.tooltip || "";
+        efSubject.value = hs.subject || "";
+        efMagnification.value = hs.magnification || "";
+        efLighting.value = Array.isArray(hs.lighting)
+          ? hs.lighting.join(", ")
+          : hs.lighting || "";
+        efTags.value = Array.isArray(hs.tags)
+          ? hs.tags.join(", ")
+          : hs.tags || "";
+        efNotes.value = hs.notes || "";
+        efPrice.value = hs.price || "";
+        editOverlay.classList.add("open");
+        efSubject.focus();
+
+        function doSave() {
+          hs.tooltip = efTooltip.value.trim();
+          hs.subject = efSubject.value.trim();
+          hs.magnification = efMagnification.value.trim();
+          hs.lighting = efLighting.value
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          hs.tags = efTags.value
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          hs.notes = efNotes.value.trim();
+          hs.price = efPrice.value.trim();
+          closeEditModal();
+          render();
+        }
+
+        function doCancel() {
+          closeEditModal();
+        }
+
+        efSave.onclick = doSave;
+        efCancel.onclick = doCancel;
+        efCancelX.onclick = doCancel;
+      }
+
+      function closeEditModal() {
+        editOverlay.classList.remove("open");
+        efSave.onclick = null;
+        efCancel.onclick = null;
+        efCancelX.onclick = null;
       }
     </script>
   </body>

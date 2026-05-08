@@ -4,10 +4,16 @@ import crypto from "crypto";
 export default async function handler(req) {
   const store = getStore("hotspots");
 
-  // GET — return stored hotspots
+  // GET — return stored hotspots, fall back to static file
   if (req.method === "GET") {
     const data = await store.get("data");
-    return new Response(data || "[]", {
+    if (!data) {
+      return new Response(null, {
+        status: 302,
+        headers: { Location: "/hotspots.json" },
+      });
+    }
+    return new Response(data, {
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -24,8 +30,8 @@ export default async function handler(req) {
       });
     }
 
-    const { password, hotspots } = body;
-    if (!password || !Array.isArray(hotspots)) {
+    const { password, hotspots, validate } = body;
+    if (!password) {
       return new Response(JSON.stringify({ error: "Missing fields" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -36,6 +42,20 @@ export default async function handler(req) {
     if (hash !== process.env.EDITOR_PASSWORD_HASH) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // validate-only: just confirm the password, don't save
+    if (validate) {
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (!Array.isArray(hotspots)) {
+      return new Response(JSON.stringify({ error: "Missing fields" }), {
+        status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }

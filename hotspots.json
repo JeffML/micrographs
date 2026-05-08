@@ -4,14 +4,26 @@
     "y": 23.783,
     "w": 29.239,
     "h": 18.953,
-    "tooltip": "A"
+    "tooltip": "Mountain Ash",
+    "subject": "Mountain Ash Flowerlet",
+    "magnification": "40x",
+    "lighting": ["darkfield", "brightfield"],
+    "tags": ["flower", "botanical"],
+    "notes": "Generated background gradient",
+    "price": "$250"
   },
   {
     "x": 5.23,
     "y": 44.303,
     "w": 26.107,
     "h": 19.11,
-    "tooltip": "B"
+    "tooltip": "Pollen",
+    "subject": "Sneezeweed Pollen",
+    "magnification": "100x",
+    "lighting": ["darkfield"],
+    "tags": ["pollen", "botanical"],
+    "notes": "",
+    "price": ""
   },
   {
     "x": 36.349,
