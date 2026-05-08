@@ -20,6 +20,7 @@ No build step. No framework. Plain HTML/CSS/JS + Netlify Functions + Netlify Blo
 - **Netlify link**: run `netlify link --id 4e474d73-5848-4f08-b9ce-b06faf733b3a` if `.netlify/state.json` is missing
 
 Fix broken git remote with:
+
 ```bash
 git remote set-url origin https://github.com/JeffML/micrographs
 ```
@@ -28,11 +29,11 @@ git remote set-url origin https://github.com/JeffML/micrographs
 
 ## Dev Workflow
 
-| Task | Command |
-|------|---------|
-| Local dev server | `netlify dev` → `http://localhost:8888` |
-| Draft deploy | `netlify deploy` |
-| Production deploy | `netlify deploy --prod` |
+| Task              | Command                                 |
+| ----------------- | --------------------------------------- |
+| Local dev server  | `netlify dev` → `http://localhost:8888` |
+| Draft deploy      | `netlify deploy`                        |
+| Production deploy | `netlify deploy --prod`                 |
 
 - **Local dev** is safe for editor testing — blobs are isolated locally
 - **Draft deploys share production blobs** — use viewer mode only on drafts; do not use the editor
@@ -49,9 +50,11 @@ git remote set-url origin https://github.com/JeffML/micrographs
 - Server-side: SHA-256 hash compared against `EDITOR_PASSWORD_HASH` env var in Netlify
 
 To reset password:
+
 ```bash
 echo -n "newpassword" | sha256sum
 ```
+
 Then update `EDITOR_PASSWORD_HASH` in Netlify → Site configuration → Environment variables → redeploy.
 
 ---
@@ -82,10 +85,10 @@ Stored in Netlify Blobs (`hotspots` store, key `data`). Falls back to `/hotspots
 
 ## Netlify Functions
 
-| Function | Path | Purpose |
-|----------|------|---------|
+| Function       | Path            | Purpose                                                                                          |
+| -------------- | --------------- | ------------------------------------------------------------------------------------------------ |
 | `hotspots.mjs` | `/api/hotspots` | GET: return hotspots (fallback to `/hotspots.json`); POST: validate password and optionally save |
-| `image.mjs` | `/api/image` | GET: return uploaded image (fallback to `/frames.jpg`); POST: upload new image |
+| `image.mjs`    | `/api/image`    | GET: return uploaded image (fallback to `/frames.jpg`); POST: upload new image                   |
 
 Both verify password via SHA-256 hash. `hotspots.mjs` POST accepts `{ password, validate: true }` to check password without saving.
 
@@ -116,15 +119,15 @@ Both verify password via SHA-256 hash. `hotspots.mjs` POST accepts `{ password, 
 
 ## Key Files
 
-| File | Notes |
-|------|-------|
-| `index.html` | All UI, CSS, and JS in one file |
-| `hotspots.json` | Fallback data for local dev — keep updated with representative new-format entries |
-| `frames.jpg` | Fallback image for local dev |
-| `netlify/functions/hotspots.mjs` | Hotspot API |
-| `netlify/functions/image.mjs` | Image API |
-| `netlify.toml` | `publish = "."` — no build step |
-| `package.json` | Only dependency: `@netlify/blobs` |
+| File                             | Notes                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| `index.html`                     | All UI, CSS, and JS in one file                                                   |
+| `hotspots.json`                  | Fallback data for local dev — keep updated with representative new-format entries |
+| `frames.jpg`                     | Fallback image for local dev                                                      |
+| `netlify/functions/hotspots.mjs` | Hotspot API                                                                       |
+| `netlify/functions/image.mjs`    | Image API                                                                         |
+| `netlify.toml`                   | `publish = "."` — no build step                                                   |
+| `package.json`                   | Only dependency: `@netlify/blobs`                                                 |
 
 ---
 
