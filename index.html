@@ -312,6 +312,16 @@
         color: #000;
         font-weight: 600;
       }
+
+      /* ── Footer ──────────────────────────────────────────────── */
+      #footer {
+        color: #555;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        padding: 16px 0 20px;
+        text-align: center;
+        width: 100%;
+      }
     </style>
   </head>
   <body>
@@ -343,10 +353,12 @@
         <div id="draft"></div>
       </div>
       <p id="hint">
-        <span id="hint-hover">Hover over any photograph for more info</span>
+        <span id="hint-hover">Hover over any photograph for more info &nbsp;·&nbsp; Click for details</span>
         <span id="hint-touch">Tap any photograph for more info</span>
       </p>
     </div>
+
+    <footer id="footer"></footer>
 
     <!-- Viewer popup -->
     <div id="popup-overlay">
@@ -411,6 +423,10 @@
       const btnExit = document.getElementById("btn-exit");
       const toolbar = document.getElementById("toolbar");
       const photo = document.getElementById("photo");
+
+      // ── Footer copyright ──────────────────────────────────────
+      document.getElementById("footer").textContent =
+        `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved`;
 
       // ── Load ────────────────────────────────────────────────────
       fetch("/api/hotspots")

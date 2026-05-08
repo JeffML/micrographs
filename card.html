@@ -61,7 +61,7 @@
       }
 
       .title {
-        font-size: 28pt;
+        font-size: 30pt;
         font-weight: normal;
         letter-spacing: 0.04em;
         color: #1a1a1a;
@@ -69,7 +69,7 @@
       }
 
       .byline {
-        font-size: 11pt;
+        font-size: 12pt;
         color: #555;
         letter-spacing: 0.15em;
         text-transform: uppercase;
@@ -83,23 +83,23 @@
       }
 
       .contact {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.06in;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.06in 0.18in;
+        align-items: baseline;
       }
 
       .contact a {
-        font-size: 10pt;
-        color: #333;
+        font-size: 11pt;
+        color: #111;
         text-decoration: none;
         letter-spacing: 0.03em;
       }
 
       .contact .label {
-        color: #888;
+        color: #555;
         font-style: italic;
-        margin-right: 0.04in;
+        text-align: right;
       }
 
       @media screen {
@@ -123,14 +123,10 @@
       <div class="byline">by Jeff Lowery</div>
       <hr class="rule" />
       <div class="contact">
-        <div>
-          <span class="label">email</span
-          ><a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>
-        </div>
-        <div>
-          <span class="label">gallery</span
-          ><a href="https://micrographs.netlify.app">micrographs.netlify.app</a>
-        </div>
+        <span class="label">email</span>
+        <a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>
+        <span class="label">gallery</span>
+        <a href="https://micrographs.netlify.app">micrographs.netlify.app</a>
       </div>
     </div>
   </body>
