@@ -407,8 +407,8 @@
           >Price<input id="ef-price" type="text" placeholder="e.g. $250"
         /></label>
         <div class="edit-buttons">
-          <button id="ef-cancel">Cancel</button>
-          <button id="ef-save">Save</button>
+          <button id="ef-cancel">Discard</button>
+          <button id="ef-save">Apply</button>
         </div>
       </div>
     </div>
@@ -419,8 +419,12 @@
       let editorPassword = null;
       let dirty = false;
 
-      function markDirty() { dirty = true; }
-      function clearDirty() { dirty = false; }
+      function markDirty() {
+        dirty = true;
+      }
+      function clearDirty() {
+        dirty = false;
+      }
 
       const container = document.getElementById("container");
       const draft = document.getElementById("draft");
@@ -457,7 +461,8 @@
       // ── Editor toggle ───────────────────────────────────────────
       function setEditing(on) {
         if (!on && dirty) {
-          if (!confirm("You have unsaved changes. Exit without saving?")) return;
+          if (!confirm("You have unsaved changes. Exit without saving?"))
+            return;
         }
         editing = on;
         if (!on) clearDirty();
@@ -849,6 +854,7 @@
 
       // ── Save ─────────────────────────────────────────────────────
       btnSave.addEventListener("click", async () => {
+        if (!dirty) return;
         const clean = hotspots.map((hs) => ({
           x: round(hs.x),
           y: round(hs.y),
