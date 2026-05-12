@@ -31,12 +31,41 @@
         height: 3.5in;
         border: 1.5pt solid #888;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
-        gap: 0.18in;
-        padding: 0.35in 0.5in;
+        gap: 0.3in;
+        padding: 0.3in 0.45in;
         position: relative;
+      }
+
+      .card-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.18in;
+        flex: 1;
+      }
+
+      .card-qr {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.06in;
+      }
+
+      .card-qr img {
+        width: 1in;
+        height: 1in;
+        display: block;
+        image-rendering: pixelated;
+      }
+
+      .card-qr .qr-label {
+        font-size: 7pt;
+        color: #999;
+        letter-spacing: 0.04em;
+        text-align: center;
       }
 
       /* Corner accents */
@@ -119,14 +148,23 @@
   </head>
   <body>
     <div class="card">
-      <div class="title">Micrographs</div>
-      <div class="byline">by Jeff Lowery</div>
-      <hr class="rule" />
-      <div class="contact">
-        <span class="label">email</span>
-        <a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>
-        <span class="label">gallery</span>
-        <a href="https://micrographs.netlify.app">micrographs.netlify.app</a>
+      <div class="card-text">
+        <div class="title">Micrographs</div>
+        <div class="byline">by Jeff Lowery</div>
+        <hr class="rule" />
+        <div class="contact">
+          <span class="label">email</span>
+          <a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>
+          <span class="label">gallery</span>
+          <a href="https://micrographs.netlify.app">micrographs.netlify.app</a>
+        </div>
+      </div>
+      <div class="card-qr">
+        <img
+          src="qr-micrographs.png"
+          alt="QR code for micrographs.netlify.app"
+        />
+        <span class="qr-label">scan to visit</span>
       </div>
     </div>
   </body>
