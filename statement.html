@@ -158,25 +158,14 @@
       <span id="footer-year"></span>
     </footer>
 
-    <script type="module">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
       document.getElementById("footer-year").textContent =
         `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved`;
 
-      // Load marked.js from CDN, then fetch and render statement.md
       async function init() {
         const content = document.getElementById("content");
 
-        // Load marked
-        let marked;
-        try {
-          const mod = await import("https://cdn.jsdelivr.net/npm/marked@13/src/marked.js");
-          marked = mod.marked;
-        } catch {
-          content.innerHTML = '<p class="error">Could not load markdown renderer.</p>';
-          return;
-        }
-
-        // Fetch statement.md
         let md;
         try {
           const res = await fetch("statement.md");
