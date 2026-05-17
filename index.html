@@ -328,35 +328,21 @@
     <div id="toolbar">
       <button id="btn-save">Save</button>
       <button id="btn-upload">Upload Photo</button>
-      <input
-        id="file-input"
-        type="file"
-        accept="image/*"
-        style="display: none"
-      />
+      <input id="file-input" type="file" accept="image/*" style="display: none" />
       <button id="btn-exit">Exit Editor</button>
       <span
-        >Drag empty area to add &nbsp;·&nbsp; Drag hotspot to move &nbsp;·&nbsp;
-        Corner handle to resize &nbsp;·&nbsp; Click hotspot to edit
-        &nbsp;·&nbsp; × to delete</span
+        >Drag empty area to add &nbsp;·&nbsp; Drag hotspot to move &nbsp;·&nbsp; Corner handle to resize &nbsp;·&nbsp;
+        Click hotspot to edit &nbsp;·&nbsp; × to delete</span
       >
     </div>
 
     <div id="stage">
       <div id="container">
-        <img
-          id="photo"
-          src="/api/image"
-          alt="Framed photographs"
-          draggable="false"
-        />
+        <img id="photo" src="/api/image" alt="Framed photographs" draggable="false" />
         <div id="draft"></div>
       </div>
       <p id="hint">
-        <span id="hint-hover"
-          >Hover over any photograph for more info &nbsp;·&nbsp; Click for
-          details</span
-        >
+        <span id="hint-hover">Hover over any photograph for more info &nbsp;·&nbsp; Click for details</span>
         <span id="hint-touch">Tap any photograph for more info</span>
       </p>
     </div>
@@ -375,40 +361,21 @@
     <div id="edit-overlay">
       <div class="popup-box edit-form">
         <button class="popup-close" id="ef-cancel-x">×</button>
-        <h3
-          style="
-            margin-bottom: 16px;
-            font-weight: 500;
-            font-size: 16px;
-            color: #ccc;
-          "
-        >
-          Edit Hotspot
-        </h3>
+        <h3 style="margin-bottom: 16px; font-weight: 500; font-size: 16px; color: #ccc">Edit Hotspot</h3>
         <label>Hover label<input id="ef-tooltip" type="text" /></label>
         <label>Subject<input id="ef-subject" type="text" /></label>
         <label>Magnification<input id="ef-magnification" type="text" /></label>
         <label
-          >Lighting
-          <small
-            style="text-transform: none; letter-spacing: normal; color: #666"
-            >(comma-separated)</small
+          >Lighting <small style="text-transform: none; letter-spacing: normal; color: #666">(comma-separated)</small
           ><input id="ef-lighting" type="text"
         /></label>
         <label
-          >Tags
-          <small
-            style="text-transform: none; letter-spacing: normal; color: #666"
-            >(comma-separated)</small
+          >Tags <small style="text-transform: none; letter-spacing: normal; color: #666">(comma-separated)</small
           ><input id="ef-tags" type="text"
         /></label>
         <label>Notes<textarea id="ef-notes"></textarea></label>
-        <label
-          >Price<input id="ef-price" type="text" placeholder="e.g. $250"
-        /></label>
-        <label
-          >Link URL<input id="ef-link" type="text" placeholder="e.g. statement.html"
-        /></label>
+        <label>Price<input id="ef-price" type="text" placeholder="e.g. $250" /></label>
+        <label>Link URL<input id="ef-link" type="text" placeholder="e.g. statement.html" /></label>
         <div class="edit-buttons">
           <button id="ef-cancel">Discard</button>
           <button id="ef-save">Apply</button>
@@ -447,8 +414,7 @@
       });
 
       // ── Footer copyright ──────────────────────────────────────
-      document.getElementById("footer").textContent =
-        `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved`;
+      document.getElementById("footer").textContent = `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved`;
 
       // ── Load ────────────────────────────────────────────────────
       fetch("/api/hotspots")
@@ -464,8 +430,7 @@
       // ── Editor toggle ───────────────────────────────────────────
       function setEditing(on) {
         if (!on && dirty) {
-          if (!confirm("You have unsaved changes. Exit without saving?"))
-            return;
+          if (!confirm("You have unsaved changes. Exit without saving?")) return;
         }
         editing = on;
         if (!on) clearDirty();
@@ -540,26 +505,16 @@
       });
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
-          if (
-            document.getElementById("edit-overlay").classList.contains("open")
-          ) {
+          if (document.getElementById("edit-overlay").classList.contains("open")) {
             closeEditModal();
-          } else if (
-            document.getElementById("popup-overlay").classList.contains("open")
-          ) {
+          } else if (document.getElementById("popup-overlay").classList.contains("open")) {
             closePopup();
           } else if (editing) {
             setEditing(false);
           }
           return;
         }
-        if (
-          (e.key === "e" || e.key === "E") &&
-          e.shiftKey &&
-          e.altKey &&
-          !editing
-        )
-          tryEnterEditor();
+        if ((e.key === "e" || e.key === "E") && e.shiftKey && e.altKey && !editing) tryEnterEditor();
       });
 
       // ── 5-tap trigger (mobile) ───────────────────────────────────
@@ -624,16 +579,8 @@
           let moved = false;
           function doMove(cx, cy) {
             moved = true;
-            hs.x = clamp(
-              ox_pct + ((cx - ox) / cRect.width) * 100,
-              0,
-              100 - hs.w,
-            );
-            hs.y = clamp(
-              oy_pct + ((cy - oy) / cRect.height) * 100,
-              0,
-              100 - hs.h,
-            );
+            hs.x = clamp(ox_pct + ((cx - ox) / cRect.width) * 100, 0, 100 - hs.w);
+            hs.y = clamp(oy_pct + ((cy - oy) / cRect.height) * 100, 0, 100 - hs.h);
             applyPos(el, hs);
             markDirty();
           }
@@ -685,7 +632,10 @@
         // Viewer mode click → follow link or open popup
         el.addEventListener("click", (e) => {
           if (editing) return;
-          if (hs.link) { window.location.href = hs.link; return; }
+          if (hs.link) {
+            window.location.href = hs.link;
+            return;
+          }
           openViewerPopup(hs);
         });
 
@@ -918,9 +868,7 @@
       // ── Viewer popup ──────────────────────────────────────────────
       const popupOverlay = document.getElementById("popup-overlay");
       const popupBody = document.getElementById("popup-body");
-      document
-        .getElementById("popup-close")
-        .addEventListener("click", closePopup);
+      document.getElementById("popup-close").addEventListener("click", closePopup);
       popupOverlay.addEventListener("click", (e) => {
         if (e.target === popupOverlay) closePopup();
       });
@@ -934,9 +882,7 @@
           { label: "Magnification", value: hs.magnification },
           {
             label: "Lighting",
-            value: Array.isArray(hs.lighting)
-              ? hs.lighting.join(", ")
-              : hs.lighting,
+            value: Array.isArray(hs.lighting) ? hs.lighting.join(", ") : hs.lighting,
           },
           {
             label: "Tags",
@@ -952,18 +898,13 @@
         if (hs.price) {
           html += `<div class="popup-price">${escHtml(hs.price)}</div>`;
         }
-        if (!html)
-          html =
-            '<div style="color:#888;font-style:italic">No details yet.</div>';
+        if (!html) html = '<div style="color:#888;font-style:italic">No details yet.</div>';
         popupBody.innerHTML = html;
         popupOverlay.classList.add("open");
       }
 
       function escHtml(s) {
-        return s
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       }
 
       // ── Edit modal ────────────────────────────────────────────────
@@ -987,12 +928,8 @@
         efTooltip.value = hs.tooltip || "";
         efSubject.value = hs.subject || "";
         efMagnification.value = hs.magnification || "";
-        efLighting.value = Array.isArray(hs.lighting)
-          ? hs.lighting.join(", ")
-          : hs.lighting || "";
-        efTags.value = Array.isArray(hs.tags)
-          ? hs.tags.join(", ")
-          : hs.tags || "";
+        efLighting.value = Array.isArray(hs.lighting) ? hs.lighting.join(", ") : hs.lighting || "";
+        efTags.value = Array.isArray(hs.tags) ? hs.tags.join(", ") : hs.tags || "";
         efNotes.value = hs.notes || "";
         efPrice.value = hs.price || "";
         efLink.value = hs.link || "";
