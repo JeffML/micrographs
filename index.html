@@ -322,6 +322,15 @@
         text-align: center;
         width: 100%;
       }
+      #footer a {
+        color: #444;
+        text-decoration: none;
+        display: block;
+        margin-top: 4px;
+      }
+      #footer a:hover {
+        color: #888;
+      }
     </style>
   </head>
   <body>
@@ -414,7 +423,7 @@
       });
 
       // ── Footer copyright ──────────────────────────────────────
-      document.getElementById("footer").textContent = `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved`;
+      document.getElementById("footer").innerHTML = `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved<a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>`;
 
       // ── Load ────────────────────────────────────────────────────
       fetch("/api/hotspots")
