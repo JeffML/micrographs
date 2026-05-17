@@ -75,7 +75,8 @@ Stored in Netlify Blobs (`hotspots` store, key `data`). Falls back to `/hotspots
   "lighting": ["darkfield", "brightfield"],
   "tags": ["flower"],
   "notes": "Free-form notes",
-  "price": "$250"
+  "price": "$250",
+  "link": "statement.html"
 }
 ```
 

@@ -406,6 +406,9 @@
         <label
           >Price<input id="ef-price" type="text" placeholder="e.g. $250"
         /></label>
+        <label
+          >Link URL<input id="ef-link" type="text" placeholder="e.g. statement.html"
+        /></label>
         <div class="edit-buttons">
           <button id="ef-cancel">Discard</button>
           <button id="ef-save">Apply</button>
@@ -679,9 +682,10 @@
           { passive: false },
         );
 
-        // Viewer mode click → open popup
+        // Viewer mode click → follow link or open popup
         el.addEventListener("click", (e) => {
           if (editing) return;
+          if (hs.link) { window.location.href = hs.link; return; }
           openViewerPopup(hs);
         });
 
@@ -798,6 +802,7 @@
           tags: [],
           notes: "",
           price: "",
+          link: "",
         };
         hotspots.push(hs);
         markDirty();
@@ -867,6 +872,7 @@
           tags: hs.tags || [],
           notes: hs.notes || "",
           price: hs.price || "",
+          link: hs.link || "",
         }));
         btnSave.textContent = "Saving…";
         btnSave.disabled = true;
@@ -969,6 +975,7 @@
       const efTags = document.getElementById("ef-tags");
       const efNotes = document.getElementById("ef-notes");
       const efPrice = document.getElementById("ef-price");
+      const efLink = document.getElementById("ef-link");
       const efSave = document.getElementById("ef-save");
       const efCancel = document.getElementById("ef-cancel");
       const efCancelX = document.getElementById("ef-cancel-x");
@@ -988,6 +995,7 @@
           : hs.tags || "";
         efNotes.value = hs.notes || "";
         efPrice.value = hs.price || "";
+        efLink.value = hs.link || "";
         editOverlay.classList.add("open");
         efSubject.focus();
 
@@ -1005,6 +1013,7 @@
             .filter(Boolean);
           hs.notes = efNotes.value.trim();
           hs.price = efPrice.value.trim();
+          hs.link = efLink.value.trim();
           markDirty();
           closeEditModal();
           render();

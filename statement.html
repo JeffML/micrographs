@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Artist's Statement – Micrographs by Jeff Lowery</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: #111;
+        color: #ccc;
+        font-family: Georgia, "Times New Roman", serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      header {
+        width: 100%;
+        max-width: 720px;
+        padding: 48px 32px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      header h1 {
+        font-size: 28px;
+        font-weight: normal;
+        letter-spacing: 0.06em;
+        color: #e8e8e8;
+      }
+
+      header .byline {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #666;
+      }
+
+      header .rule {
+        margin-top: 24px;
+        border: none;
+        border-top: 1px solid #333;
+      }
+
+      main {
+        width: 100%;
+        max-width: 720px;
+        padding: 40px 32px 64px;
+      }
+
+      /* Markdown-rendered content */
+      .statement h1, .statement h2, .statement h3 {
+        font-weight: normal;
+        color: #e8e8e8;
+        margin: 1.6em 0 0.5em;
+        letter-spacing: 0.04em;
+      }
+      .statement h1 { font-size: 22px; }
+      .statement h2 { font-size: 18px; }
+      .statement h3 { font-size: 15px; color: #aaa; }
+
+      .statement p {
+        line-height: 1.8;
+        font-size: 15px;
+        color: #bbb;
+        margin: 0 0 1.2em;
+      }
+
+      .statement em { color: #ddd; }
+      .statement strong { color: #e8e8e8; font-weight: normal; font-style: italic; }
+
+      .statement ul, .statement ol {
+        padding-left: 1.6em;
+        margin-bottom: 1.2em;
+      }
+      .statement li {
+        line-height: 1.8;
+        font-size: 15px;
+        color: #bbb;
+        margin-bottom: 0.3em;
+      }
+
+      .statement blockquote {
+        border-left: 2px solid #444;
+        margin: 1.2em 0;
+        padding: 0.4em 1.2em;
+        color: #888;
+        font-style: italic;
+      }
+
+      .statement a {
+        color: #8ab4c8;
+        text-decoration: none;
+      }
+      .statement a:hover {
+        text-decoration: underline;
+      }
+
+      .loading {
+        color: #555;
+        font-style: italic;
+        font-size: 14px;
+      }
+
+      .error {
+        color: #a44;
+        font-size: 14px;
+      }
+
+      footer {
+        width: 100%;
+        max-width: 720px;
+        padding: 0 32px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #444;
+        letter-spacing: 0.04em;
+        border-top: 1px solid #222;
+        padding-top: 24px;
+      }
+
+      footer a {
+        color: #666;
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Artist's Statement</h1>
+      <div class="byline">Micrographs by Jeff Lowery</div>
+      <hr class="rule" />
+    </header>
+
+    <main>
+      <div id="content" class="statement">
+        <p class="loading">Loading…</p>
+      </div>
+    </main>
+
+    <footer>
+      <a href="/">&larr; Back to Gallery</a>
+      <span id="footer-year"></span>
+    </footer>
+
+    <script type="module">
+      document.getElementById("footer-year").textContent =
+        `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved`;
+
+      // Load marked.js from CDN, then fetch and render statement.md
+      async function init() {
+        const content = document.getElementById("content");
+
+        // Load marked
+        let marked;
+        try {
+          const mod = await import("https://cdn.jsdelivr.net/npm/marked@13/src/marked.js");
+          marked = mod.marked;
+        } catch {
+          content.innerHTML = '<p class="error">Could not load markdown renderer.</p>';
+          return;
+        }
+
+        // Fetch statement.md
+        let md;
+        try {
+          const res = await fetch("statement.md");
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          md = await res.text();
+        } catch {
+          content.innerHTML = '<p class="error">Could not load statement.md.</p>';
+          return;
+        }
+
+        content.innerHTML = marked.parse(md);
+      }
+
+      init();
+    </script>
+  </body>
+</html>
