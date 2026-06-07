@@ -12,6 +12,9 @@
     {
       "path": "../../../mnt/chromeos/GoogleDrive/MyDrive/albums-micro",
     },
+    {
+      "path": "../MicroGallery",
+    },
   ],
   "settings": {},
 }
