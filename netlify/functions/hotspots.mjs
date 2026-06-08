@@ -10,10 +10,7 @@ function isOptionalString(value) {
 }
 
 function isOptionalStringArray(value) {
-  return (
-    value === undefined ||
-    (Array.isArray(value) && value.every((item) => typeof item === "string"))
-  );
+  return value === undefined || (Array.isArray(value) && value.every((item) => typeof item === "string"));
 }
 
 function isPercent(value) {
