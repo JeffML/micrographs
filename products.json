@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "mountain-ash-print",
+    "title": "Mountain Ash Flowerlet",
+    "subject": "Mountain Ash",
+    "forSale": true,
+    "variants": [
+      {
+        "sku": "MASH-8X10-OPEN",
+        "label": "8×10 signed print",
+        "priceMinor": 25000,
+        "currency": "USD",
+        "editionType": "open",
+        "fulfillment": "ship",
+        "active": true,
+        "checkoutUrl": "https://square.link/u/dZhGa2H4"
+      }
+    ]
+  }
+]

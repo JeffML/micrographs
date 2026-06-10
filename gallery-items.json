@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "mountain-ash-print",
+    "title": "Mountain Ash Flowerlet",
+    "shortDescription": "A luminous botanical micrograph of mountain ash flowers captured in darkfield and brightfield lighting.",
+    "collection": "Botanical Micrographs",
+    "displayImage": "/frames.jpg",
+    "thumbnail": "/frames.jpg",
+    "status": "published",
+    "forSale": true,
+    "subject": "Mountain Ash",
+    "magnification": "40x",
+    "lighting": ["darkfield", "brightfield"],
+    "tags": ["flower", "botanical"]
+  }
+]
