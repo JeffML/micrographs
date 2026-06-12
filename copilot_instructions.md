@@ -10,7 +10,73 @@ A single-page interactive photo wall (`index.html`) deployed on Netlify. Visitor
 
 No build step. No framework. Plain HTML/CSS/JS + Netlify Functions + Netlify Blobs.
 
-Commerce note: saleable items may originate from either `wallgallery` or `microAlbum`. Do not assume `wallgallery` is the permanent source of truth for product records. Any `gallery-items.json` or `products.json` files in this repo should be treated as provisional until the shared saleable-item source and UI host are explicitly decided.
+Commerce note: `microAlbum` is the source of truth for saleable inventory. `wallgallery` is the first customer-facing buy-flow host. `gallery-items.json` and `products.json` in this repo are channel projections — derived from microAlbum metadata until the P2 promotion pipeline is built.
+
+---
+
+## Commerce Data (P1)
+
+Channel projection files live at the repo root:
+
+| File                 | Purpose                                          |
+| -------------------- | ------------------------------------------------ |
+| `gallery-items.json` | Public display metadata (slug, title, image, status, forSale) |
+| `products.json`      | Saleable offer records (variants, priceMinor, checkoutUrl)    |
+
+### Required fields — `products.json`
+
+Each product must have:
+- `slug` (string, non-empty) — must match hotspot slug or subject
+- `variants` (array, ≥1)
+
+Each variant must have:
+- `sku` (string, non-empty)
+- `priceMinor` (integer ≥ 0, cents)
+- `active` (boolean) — only active variants show Buy button as enabled
+- `checkoutUrl` (string, must start with `https://`) — required for Buy button to be enabled
+
+Invalid products/variants are silently filtered at load time with `console.warn`. Missing or malformed records never crash the page.
+
+### Buy flow (viewer popup)
+
+1. Click hotspot → popup opens
+2. Hotspot is matched to product via slug normalization (see `scripts/commerce-mapping.mjs`)
+3. If matched: variant selector shown, defaults to first active variant
+4. Selecting a variant updates the displayed price
+5. Buy button: enabled (`<a href=checkoutUrl target=_blank rel="noopener noreferrer">`) when variant is active + has checkoutUrl; disabled otherwise
+6. Buy → opens Square payment link in new tab
+
+### Adding a new product
+
+1. Add entry to `gallery-items.json` (display metadata)
+2. Add entry to `products.json` (offer/pricing with Square link)
+3. Ensure hotspot `slug`, `subject`, or `tooltip` matches the product slug (after lowercase/dash normalization)
+4. Run `npm run test:step1` and `npm run test:step2` to validate
+
+### Test scripts
+
+| Script             | What it checks                                      |
+| ------------------ | --------------------------------------------------- |
+| `npm run test:step1` | gallery-items.json + products.json structure/fields |
+| `npm run test:step2` | hotspot-to-product mapping logic                    |
+| `npm run test:step3` | variant selector defaults and HTML structure         |
+| `npm run test:step4` | buy button state (enabled/disabled/HTTPS)           |
+| `npm run test:step5` | product/variant validation + graceful fallback      |
+
+---
+
+## E2E Manual Preview Checklist (Step 6)
+
+Run against `netlify dev` (localhost:8888) or a draft deploy.
+
+- [ ] Open `http://localhost:8888` — wall image loads, no console errors
+- [ ] Click the Mountain Ash hotspot — popup opens
+- [ ] Popup shows: subject, variant selector with "8×10 signed print — $250.00", price "$250.00"
+- [ ] Variant option is highlighted (selected state)
+- [ ] "Buy Now" button is visible and yellow
+- [ ] Click "Buy Now" — Square payment page opens in new tab at `https://square.link/u/dZhGa2H4`
+- [ ] Close popup (× or click outside) — popup closes cleanly
+- [ ] No JS errors in browser console throughout
 
 ---
 
