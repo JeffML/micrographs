@@ -10,6 +10,8 @@ A single-page interactive photo wall (`index.html`) deployed on Netlify. Visitor
 
 No build step. No framework. Plain HTML/CSS/JS + Netlify Functions + Netlify Blobs.
 
+Commerce note: saleable items may originate from either `wallgallery` or `microAlbum`. Do not assume `wallgallery` is the permanent source of truth for product records. Any `gallery-items.json` or `products.json` files in this repo should be treated as provisional until the shared saleable-item source and UI host are explicitly decided.
+
 ---
 
 ## Repo & Deployment
