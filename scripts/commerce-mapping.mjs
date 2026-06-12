@@ -40,7 +40,9 @@ export function findProductForHotspot(hotspot, index) {
         matchedBy: "exact",
         matchedSlug: slug,
         variants: Array.isArray(exact.variants) ? exact.variants : [],
-        primaryVariant: Array.isArray(exact.variants) ? exact.variants.find((v) => v?.active) || exact.variants[0] : null,
+        primaryVariant: Array.isArray(exact.variants)
+          ? exact.variants.find((v) => v?.active) || exact.variants[0]
+          : null,
       };
     }
   }
@@ -53,7 +55,9 @@ export function findProductForHotspot(hotspot, index) {
         matchedBy: "prefix",
         matchedSlug: slug,
         variants: Array.isArray(prefix.variants) ? prefix.variants : [],
-        primaryVariant: Array.isArray(prefix.variants) ? prefix.variants.find((v) => v?.active) || prefix.variants[0] : null,
+        primaryVariant: Array.isArray(prefix.variants)
+          ? prefix.variants.find((v) => v?.active) || prefix.variants[0]
+          : null,
       };
     }
   }

@@ -33,7 +33,10 @@ for (const product of products) {
   assert(Array.isArray(product.variants), "Each product requires a variants array.");
   for (const variant of product.variants) {
     assert(typeof variant.sku === "string" && variant.sku.trim(), "Each variant requires a non-empty sku.");
-    assert(typeof variant.checkoutUrl === "string" && variant.checkoutUrl.startsWith("https://"), "Each variant requires an https checkoutUrl.");
+    assert(
+      typeof variant.checkoutUrl === "string" && variant.checkoutUrl.startsWith("https://"),
+      "Each variant requires an https checkoutUrl.",
+    );
   }
 }
 
