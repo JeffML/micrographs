@@ -392,10 +392,13 @@
       </div>
     </div>
 
-    <script>
+    <script type="module">
+      import { createProductIndex, findProductForHotspot } from "/scripts/commerce-mapping.mjs";
+
       let hotspots = [];
       let galleryItems = [];
       let productCatalog = [];
+      let productIndex = createProductIndex([]);
       let editing = false;
       let editorPassword = null;
       let dirty = false;
@@ -450,9 +453,11 @@
           const productData = await productRes.json();
           galleryItems = Array.isArray(galleryData) ? galleryData : [];
           productCatalog = Array.isArray(productData) ? productData : [];
+          productIndex = createProductIndex(productCatalog);
         } catch {
           galleryItems = [];
           productCatalog = [];
+          productIndex = createProductIndex([]);
         }
       }
 
@@ -909,6 +914,7 @@
       }
 
       function openViewerPopup(hs) {
+        const commerceMatch = findProductForHotspot(hs, productIndex);
         const fields = [
           { label: "Subject", value: hs.subject },
           { label: "Magnification", value: hs.magnification },
@@ -929,6 +935,9 @@
         }
         if (hs.price) {
           html += `<div class="popup-price">${escHtml(hs.price)}</div>`;
+        } else if (commerceMatch?.primaryVariant?.priceMinor) {
+          const dollars = (commerceMatch.primaryVariant.priceMinor / 100).toFixed(2);
+          html += `<div class="popup-price">$${dollars}</div>`;
         }
         if (!html) html = '<div style="color:#888;font-style:italic">No details yet.</div>';
         popupBody.innerHTML = html;

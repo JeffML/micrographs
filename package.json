@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test:step1": "node scripts/step1-readpath-smoke.mjs"
+    "test:step1": "node scripts/step1-readpath-smoke.mjs",
+    "test:step2": "node scripts/step2-mapping-test.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "^8.0.0",
