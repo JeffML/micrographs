@@ -510,6 +510,54 @@
         render();
       }
 
+      // Step 5: Validate product records at load time; filter out malformed entries
+      // with non-blocking console warnings. Never throws.
+      function validateProductCatalog(catalog) {
+        if (!Array.isArray(catalog)) return [];
+        const valid = [];
+        for (const product of catalog) {
+          // Required product fields
+          if (!product || typeof product !== "object") {
+            console.warn("[commerce] Skipping non-object product entry:", product);
+            continue;
+          }
+          if (!product.slug || typeof product.slug !== "string" || !product.slug.trim()) {
+            console.warn("[commerce] Skipping product missing slug:", product);
+            continue;
+          }
+          if (!Array.isArray(product.variants) || product.variants.length === 0) {
+            console.warn("[commerce] Skipping product with no variants:", product.slug);
+            continue;
+          }
+          // Validate variants — keep product but filter bad variants
+          const validVariants = product.variants.filter((v) => {
+            if (!v || typeof v !== "object") {
+              console.warn("[commerce] Dropping non-object variant in", product.slug, v);
+              return false;
+            }
+            if (!v.sku || typeof v.sku !== "string" || !v.sku.trim()) {
+              console.warn("[commerce] Dropping variant missing sku in", product.slug, v);
+              return false;
+            }
+            if (typeof v.priceMinor !== "number" || v.priceMinor < 0) {
+              console.warn("[commerce] Dropping variant with invalid priceMinor in", product.slug, v.sku);
+              return false;
+            }
+            if (v.checkoutUrl && !v.checkoutUrl.startsWith("https://")) {
+              console.warn("[commerce] Dropping variant with insecure checkoutUrl in", product.slug, v.sku);
+              return false;
+            }
+            return true;
+          });
+          if (validVariants.length === 0) {
+            console.warn("[commerce] Skipping product with no valid variants:", product.slug);
+            continue;
+          }
+          valid.push({ ...product, variants: validVariants });
+        }
+        return valid;
+      }
+
       // Step 1 read-path integration: load channel projection records with safe fallback.
       async function loadCommerceReadPath() {
         try {
@@ -517,7 +565,8 @@
           const galleryData = await galleryRes.json();
           const productData = await productRes.json();
           galleryItems = Array.isArray(galleryData) ? galleryData : [];
-          productCatalog = Array.isArray(productData) ? productData : [];
+          const rawCatalog = Array.isArray(productData) ? productData : [];
+          productCatalog = validateProductCatalog(rawCatalog);
           productIndex = createProductIndex(productCatalog);
         } catch {
           galleryItems = [];

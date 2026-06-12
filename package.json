@@ -3,7 +3,8 @@
     "test:step1": "node scripts/step1-readpath-smoke.mjs",
     "test:step2": "node scripts/step2-mapping-test.mjs",
     "test:step3": "node scripts/step3-variant-selector-test.mjs",
-    "test:step4": "node scripts/step4-buy-button-test.mjs"
+    "test:step4": "node scripts/step4-buy-button-test.mjs",
+    "test:step5": "node scripts/step5-validation-test.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "^8.0.0",
