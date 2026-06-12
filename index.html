@@ -258,6 +258,47 @@
         color: #fc0;
         margin-top: 14px;
       }
+      /* Variant selector */
+      .popup-variant-selector {
+        margin: 16px 0;
+        padding: 12px;
+        background: rgba(255, 204, 0, 0.08);
+        border: 1px solid rgba(255, 204, 0, 0.2);
+        border-radius: 6px;
+      }
+      .popup-variant-selector .label {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 8px;
+      }
+      .variant-options {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .variant-option {
+        padding: 8px 12px;
+        background: #2a2a2a;
+        border: 2px solid transparent;
+        border-radius: 4px;
+        color: #ccc;
+        cursor: pointer;
+        font-size: 14px;
+        text-align: left;
+        transition: all 0.15s ease;
+      }
+      .variant-option:hover {
+        background: #333;
+        border-color: rgba(255, 204, 0, 0.3);
+      }
+      .variant-option.selected {
+        background: rgba(255, 204, 0, 0.15);
+        border-color: #fc0;
+        color: #fff;
+        font-weight: 500;
+      }
       /* Edit modal form */
       .edit-form label {
         display: flex;
@@ -428,7 +469,8 @@
       });
 
       // ── Footer copyright ──────────────────────────────────────
-      document.getElementById("footer").innerHTML = `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved<a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>`;
+      document.getElementById("footer").innerHTML =
+        `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved<a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>`;
 
       // ── Load ────────────────────────────────────────────────────
       async function loadHotspots() {
@@ -445,10 +487,7 @@
       // Step 1 read-path integration: load channel projection records with safe fallback.
       async function loadCommerceReadPath() {
         try {
-          const [galleryRes, productRes] = await Promise.all([
-            fetch("/gallery-items.json"),
-            fetch("/products.json"),
-          ]);
+          const [galleryRes, productRes] = await Promise.all([fetch("/gallery-items.json"), fetch("/products.json")]);
           const galleryData = await galleryRes.json();
           const productData = await productRes.json();
           galleryItems = Array.isArray(galleryData) ? galleryData : [];
@@ -913,34 +952,83 @@
         popupOverlay.classList.remove("open");
       }
 
-      function openViewerPopup(hs) {
-        const commerceMatch = findProductForHotspot(hs, productIndex);
+      // ─── Viewer popup state ───────────────────────────────────
+      let currentPopupHotspot = null;
+      let selectedVariant = null;
+
+      function selectVariant(variantIndex) {
+        selectedVariant = variantIndex;
+        updatePopupDisplay();
+      }
+
+      function updatePopupDisplay() {
+        const commerceMatch = findProductForHotspot(currentPopupHotspot, productIndex);
         const fields = [
-          { label: "Subject", value: hs.subject },
-          { label: "Magnification", value: hs.magnification },
+          { label: "Subject", value: currentPopupHotspot.subject },
+          { label: "Magnification", value: currentPopupHotspot.magnification },
           {
             label: "Lighting",
-            value: Array.isArray(hs.lighting) ? hs.lighting.join(", ") : hs.lighting,
+            value: Array.isArray(currentPopupHotspot.lighting)
+              ? currentPopupHotspot.lighting.join(", ")
+              : currentPopupHotspot.lighting,
           },
           {
             label: "Tags",
-            value: Array.isArray(hs.tags) ? hs.tags.join(", ") : hs.tags,
+            value: Array.isArray(currentPopupHotspot.tags)
+              ? currentPopupHotspot.tags.join(", ")
+              : currentPopupHotspot.tags,
           },
-          { label: "Notes", value: hs.notes },
+          { label: "Notes", value: currentPopupHotspot.notes },
         ];
         let html = "";
         for (const f of fields) {
           if (!f.value) continue;
           html += `<div class="popup-field"><div class="label">${f.label}</div><div class="value">${escHtml(String(f.value))}</div></div>`;
         }
-        if (hs.price) {
-          html += `<div class="popup-price">${escHtml(hs.price)}</div>`;
+
+        // Variant selector (if available)
+        if (commerceMatch?.variants && commerceMatch.variants.length > 0) {
+          // Default to first active variant, or first variant
+          if (selectedVariant === null) {
+            const activeIdx = commerceMatch.variants.findIndex((v) => v.active);
+            selectedVariant = activeIdx >= 0 ? activeIdx : 0;
+          }
+          const selected = commerceMatch.variants[selectedVariant];
+
+          html += '<div class="popup-variant-selector">';
+          html += '<div class="label">Available Options</div>';
+          html += '<div class="variant-options">';
+          for (let i = 0; i < commerceMatch.variants.length; i++) {
+            const v = commerceMatch.variants[i];
+            const isSelected = i === selectedVariant ? "selected" : "";
+            const dollars = (v.priceMinor / 100).toFixed(2);
+            html += `<button class="variant-option ${isSelected}" data-variant-idx="${i}" onclick="selectVariant(${i}); return false;">
+              ${escHtml(v.label)} — $${dollars}
+            </button>`;
+          }
+          html += "</div>";
+          html += "</div>";
+
+          // Show selected variant price prominently
+          if (selected.priceMinor) {
+            const dollars = (selected.priceMinor / 100).toFixed(2);
+            html += `<div class="popup-price">$${dollars}</div>`;
+          }
+        } else if (currentPopupHotspot.price) {
+          html += `<div class="popup-price">${escHtml(currentPopupHotspot.price)}</div>`;
         } else if (commerceMatch?.primaryVariant?.priceMinor) {
           const dollars = (commerceMatch.primaryVariant.priceMinor / 100).toFixed(2);
           html += `<div class="popup-price">$${dollars}</div>`;
         }
+
         if (!html) html = '<div style="color:#888;font-style:italic">No details yet.</div>';
         popupBody.innerHTML = html;
+      }
+
+      function openViewerPopup(hs) {
+        currentPopupHotspot = hs;
+        selectedVariant = null; // Reset variant selection
+        updatePopupDisplay();
         popupOverlay.classList.add("open");
       }
 
