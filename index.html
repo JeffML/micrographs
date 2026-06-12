@@ -394,6 +394,8 @@
 
     <script>
       let hotspots = [];
+      let galleryItems = [];
+      let productCatalog = [];
       let editing = false;
       let editorPassword = null;
       let dirty = false;
@@ -426,15 +428,36 @@
       document.getElementById("footer").innerHTML = `© ${new Date().getFullYear()} Jeff Lowery · All rights reserved<a href="mailto:jlowery2663@gmail.com">jlowery2663@gmail.com</a>`;
 
       // ── Load ────────────────────────────────────────────────────
-      fetch("/api/hotspots")
-        .then((r) => r.json())
-        .then((data) => {
-          hotspots = data;
-          render();
-        })
-        .catch(() => {
+      async function loadHotspots() {
+        try {
+          const res = await fetch("/api/hotspots");
+          const data = await res.json();
+          hotspots = Array.isArray(data) ? data : [];
+        } catch {
           hotspots = [];
-        });
+        }
+        render();
+      }
+
+      // Step 1 read-path integration: load channel projection records with safe fallback.
+      async function loadCommerceReadPath() {
+        try {
+          const [galleryRes, productRes] = await Promise.all([
+            fetch("/gallery-items.json"),
+            fetch("/products.json"),
+          ]);
+          const galleryData = await galleryRes.json();
+          const productData = await productRes.json();
+          galleryItems = Array.isArray(galleryData) ? galleryData : [];
+          productCatalog = Array.isArray(productData) ? productData : [];
+        } catch {
+          galleryItems = [];
+          productCatalog = [];
+        }
+      }
+
+      loadHotspots();
+      loadCommerceReadPath();
 
       // ── Editor toggle ───────────────────────────────────────────
       function setEditing(on) {
