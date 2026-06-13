@@ -1035,6 +1035,8 @@
         selectedVariant = variantIndex;
         updatePopupDisplay();
       }
+      // Expose to global scope so inline onclick handlers in popup HTML can reach it
+      window.selectVariant = selectVariant;
 
       function updatePopupDisplay() {
         const commerceMatch = findProductForHotspot(currentPopupHotspot, productIndex);
