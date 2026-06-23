@@ -41,10 +41,7 @@ console.log(`  - SQUARE_ENVIRONMENT: ${environment}`);
 // ── Test 2: Square API reachable and credentials valid ─────────────
 console.log("\n✓ Test 2: Call Square Create Payment Link (sandbox)");
 
-const baseUrl =
-  environment === "production"
-    ? "https://connect.squareup.com"
-    : "https://connect.squareupsandbox.com";
+const baseUrl = environment === "production" ? "https://connect.squareup.com" : "https://connect.squareupsandbox.com";
 
 const idempotencyKey = `test-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 

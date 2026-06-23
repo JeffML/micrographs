@@ -40,10 +40,10 @@ export default async function handler(req, context) {
     });
   }
   if (!Number.isInteger(priceMinor) || priceMinor < 1) {
-    return new Response(
-      JSON.stringify({ error: "priceMinor must be a positive integer (cents)" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "priceMinor must be a positive integer (cents)" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // ── Env vars ─────────────────────────────────────────────────────
@@ -59,10 +59,7 @@ export default async function handler(req, context) {
     });
   }
 
-  const baseUrl =
-    environment === "production"
-      ? "https://connect.squareup.com"
-      : "https://connect.squareupsandbox.com";
+  const baseUrl = environment === "production" ? "https://connect.squareup.com" : "https://connect.squareupsandbox.com";
 
   // ── Call Square Create Payment Link API ──────────────────────────
   const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`;

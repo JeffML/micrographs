@@ -45,7 +45,9 @@ const validProduct = {
   slug: "mountain-ash-print",
   title: "Mountain Ash",
   forSale: true,
-  variants: [{ sku: "MASH-8X10", label: "8×10", priceMinor: 25000, active: true, checkoutUrl: "https://square.link/u/abc123" }],
+  variants: [
+    { sku: "MASH-8X10", label: "8×10", priceMinor: 25000, active: true, checkoutUrl: "https://square.link/u/abc123" },
+  ],
 };
 const result3 = validateProductCatalog([validProduct]);
 if (result3.length !== 1) throw new Error("Expected 1 product");
