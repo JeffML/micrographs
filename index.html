@@ -1103,7 +1103,7 @@
           if (selected.active) {
             const priceMinor = selected.priceMinor;
             const subject = currentPopupHotspot.subject || currentPopupHotspot.tooltip || "Print";
-            html += `<button class="popup-buy" onclick="buyNow(${priceMinor}, ${JSON.stringify(subject)})">Buy Now</button>`;
+            html += `<button class="popup-buy" data-price="${priceMinor}" data-subject="${escHtml(subject)}">Buy Now</button>`;
           } else {
             html += `<button class="popup-buy" disabled>Unavailable</button>`;
           }
@@ -1114,7 +1114,7 @@
           const subject = currentPopupHotspot.subject || currentPopupHotspot.tooltip || "Print";
           html += `<div class="popup-price">${escHtml(currentPopupHotspot.price)}</div>`;
           if (priceMinor > 0) {
-            html += `<button class="popup-buy" onclick="buyNow(${priceMinor}, ${JSON.stringify(subject)})">Buy Now</button>`;
+            html += `<button class="popup-buy" data-price="${priceMinor}" data-subject="${escHtml(subject)}">Buy Now</button>`;
           }
         } else if (commerceMatch?.primaryVariant?.priceMinor) {
           const dollars = (commerceMatch.primaryVariant.priceMinor / 100).toFixed(2);
@@ -1152,7 +1152,13 @@
           }
         }
       }
-      window.buyNow = buyNow;
+      popupBody.addEventListener("click", (e) => {
+        const btn = e.target.closest(".popup-buy");
+        if (!btn || btn.disabled) return;
+        const priceMinor = parseInt(btn.dataset.price, 10);
+        const subject = btn.dataset.subject || "Print";
+        buyNow(priceMinor, subject);
+      });
 
       function openViewerPopup(hs) {
         currentPopupHotspot = hs;
