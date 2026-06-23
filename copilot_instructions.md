@@ -10,58 +10,59 @@ A single-page interactive photo wall (`index.html`) deployed on Netlify. Visitor
 
 No build step. No framework. Plain HTML/CSS/JS + Netlify Functions + Netlify Blobs.
 
-Commerce note: `microAlbum` is the source of truth for saleable inventory. `wallgallery` is the first customer-facing buy-flow host. `gallery-items.json` and `products.json` in this repo are channel projections — derived from microAlbum metadata until the P2 promotion pipeline is built.
+Commerce note: `microAlbum` is the source of truth for saleable inventory. `wallgallery` is the first customer-facing buy-flow host. `gallery-items.json` and `products.json` were used in P1 (stepping stone only) and will be retired once P3 is live. The **real pricing source is the `price` field in hotspot metadata** — the gallery is already live with prices.
 
 ---
 
-## Commerce Data (P1)
+## Commerce State (P3 in progress — June 2026)
 
-Channel projection files live at the repo root:
+**P1 (manual Square links):** Complete. Proved UI pattern. Being retired.
+**P2 (promotion pipeline):** Deferred. Not needed before live selling.
+**P3 (Square Checkout API):** Active branch `wallgallery/p1-buyflow-stepwise`.
 
-| File                 | Purpose                                          |
-| -------------------- | ------------------------------------------------ |
-| `gallery-items.json` | Public display metadata (slug, title, image, status, forSale) |
-| `products.json`      | Saleable offer records (variants, priceMinor, checkoutUrl)    |
+### Current buy flow
 
-### Required fields — `products.json`
+1. Buyer clicks any hotspot with a `price` field → popup opens
+2. If hotspot matches `products.json` entry: variant selector shown
+3. "Buy Now" button POSTs `{ subject, priceMinor, currency }` to `/api/checkout`
+4. Netlify Function `checkout.mjs` calls Square Checkout API → returns `checkoutUrl`
+5. Browser opens Square-hosted payment page in new tab
+6. Square emails buyer a receipt
 
-Each product must have:
-- `slug` (string, non-empty) — must match hotspot slug or subject
-- `variants` (array, ≥1)
+### Netlify Function: `/api/checkout`
 
-Each variant must have:
-- `sku` (string, non-empty)
-- `priceMinor` (integer ≥ 0, cents)
-- `active` (boolean) — only active variants show Buy button as enabled
-- `checkoutUrl` (string, must start with `https://`) — required for Buy button to be enabled
+File: `netlify/functions/checkout.mjs`
 
-Invalid products/variants are silently filtered at load time with `console.warn`. Missing or malformed records never crash the page.
+Request: `POST { subject: string, priceMinor: integer, currency?: string }`  
+Response: `{ checkoutUrl: string }` or `{ error: string }`
 
-### Buy flow (viewer popup)
+Required env vars (set in Netlify dashboard AND local `.env`):
 
-1. Click hotspot → popup opens
-2. Hotspot is matched to product via slug normalization (see `scripts/commerce-mapping.mjs`)
-3. If matched: variant selector shown, defaults to first active variant
-4. Selecting a variant updates the displayed price
-5. Buy button: enabled (`<a href=checkoutUrl target=_blank rel="noopener noreferrer">`) when variant is active + has checkoutUrl; disabled otherwise
-6. Buy → opens Square payment link in new tab
+| Variable | Value |
+|---|---|
+| `SQUARE_ACCESS_TOKEN` | Sandbox or production access token |
+| `SQUARE_LOCATION_ID` | `LRGPDNKDRNF8S` |
+| `SQUARE_ENVIRONMENT` | `sandbox` or `production` |
 
-### Adding a new product
+**Local `.env` is gitignored — never committed.** Add to Netlify dashboard for deployed environments.
 
-1. Add entry to `gallery-items.json` (display metadata)
-2. Add entry to `products.json` (offer/pricing with Square link)
-3. Ensure hotspot `slug`, `subject`, or `tooltip` matches the product slug (after lowercase/dash normalization)
-4. Run `npm run test:step1` and `npm run test:step2` to validate
+### What's next (P3 remaining)
+
+- [ ] Sandbox E2E: run `netlify dev`, click Buy Now, complete test payment with Square sandbox card number
+- [ ] Add production env vars to Netlify dashboard
+- [ ] Deploy to production and verify one real transaction
+- [ ] Retire `products.json` manual links
 
 ### Test scripts
 
-| Script             | What it checks                                      |
-| ------------------ | --------------------------------------------------- |
-| `npm run test:step1` | gallery-items.json + products.json structure/fields |
-| `npm run test:step2` | hotspot-to-product mapping logic                    |
-| `npm run test:step3` | variant selector defaults and HTML structure         |
-| `npm run test:step4` | buy button state (enabled/disabled/HTTPS)           |
-| `npm run test:step5` | product/variant validation + graceful fallback      |
+| Script | What it checks |
+|---|---|
+| `npm run test:step1` | gallery-items.json + products.json structure |
+| `npm run test:step2` | hotspot-to-product mapping |
+| `npm run test:step3` | variant selector defaults |
+| `npm run test:step4` | buy button state logic |
+| `npm run test:step5` | product/variant validation + fallback |
+| `npm run test:p3-checkout` | live Square sandbox API call |
 
 ---
 
@@ -69,14 +70,14 @@ Invalid products/variants are silently filtered at load time with `console.warn`
 
 Run against `netlify dev` (localhost:8888) or a draft deploy.
 
-- [ ] Open `http://localhost:8888` — wall image loads, no console errors
-- [ ] Click the Mountain Ash hotspot — popup opens
-- [ ] Popup shows: subject, variant selector with "8×10 signed print — $250.00", price "$250.00"
-- [ ] Variant option is highlighted (selected state)
-- [ ] "Buy Now" button is visible and yellow
-- [ ] Click "Buy Now" — Square payment page opens in new tab at `https://square.link/u/dZhGa2H4`
-- [ ] Close popup (× or click outside) — popup closes cleanly
-- [ ] No JS errors in browser console throughout
+- [x] Open `http://localhost:8888` — wall image loads, no console errors
+- [x] Click the Mountain Ash hotspot — popup opens
+- [x] Popup shows: subject, variant selector with "8×10 signed print — $250.00", price "$250.00"
+- [x] Variant option is highlighted (selected state)
+- [x] "Buy Now" button is visible and yellow
+- [x] Click "Buy Now" — Square payment page opens in new tab at `https://square.link/u/dZhGa2H4`
+- [x] Close popup (× or click outside) — popup closes cleanly
+- [x] No JS errors in browser console throughout
 
 ---
 
