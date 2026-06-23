@@ -284,6 +284,12 @@
         color: #777;
         cursor: not-allowed;
       }
+      .popup-buy.loading {
+        background: #888;
+        color: #ccc;
+        cursor: wait;
+        pointer-events: none;
+      }
       /* Variant selector */
       .popup-variant-selector {
         margin: 16px 0;
@@ -1092,16 +1098,24 @@
             html += `<div class="popup-price">$${dollars}</div>`;
           }
 
-          // Buy button — enabled only when variant is active and has a checkoutUrl
-          const canBuy = selected.active && selected.checkoutUrl;
-          if (canBuy) {
-            html += `<a class="popup-buy" href="${escHtml(selected.checkoutUrl)}" target="_blank" rel="noopener noreferrer">Buy Now</a>`;
+          // Buy button — use /api/checkout if variant is active (preferred),
+          // otherwise fall back to static checkoutUrl if present
+          if (selected.active) {
+            const priceMinor = selected.priceMinor;
+            const subject = currentPopupHotspot.subject || currentPopupHotspot.tooltip || "Print";
+            html += `<button class="popup-buy" onclick="buyNow(${priceMinor}, ${JSON.stringify(subject)})">Buy Now</button>`;
           } else {
-            const reason = !selected.active ? "Unavailable" : "Buy link coming soon";
-            html += `<button class="popup-buy" disabled>${escHtml(reason)}</button>`;
+            html += `<button class="popup-buy" disabled>Unavailable</button>`;
           }
         } else if (currentPopupHotspot.price) {
+          // Hotspot-only path: price from hotspot metadata, no products.json entry needed
+          const raw = String(currentPopupHotspot.price).replace(/[^\d.]/g, "");
+          const priceMinor = Math.round(parseFloat(raw) * 100);
+          const subject = currentPopupHotspot.subject || currentPopupHotspot.tooltip || "Print";
           html += `<div class="popup-price">${escHtml(currentPopupHotspot.price)}</div>`;
+          if (priceMinor > 0) {
+            html += `<button class="popup-buy" onclick="buyNow(${priceMinor}, ${JSON.stringify(subject)})">Buy Now</button>`;
+          }
         } else if (commerceMatch?.primaryVariant?.priceMinor) {
           const dollars = (commerceMatch.primaryVariant.priceMinor / 100).toFixed(2);
           html += `<div class="popup-price">$${dollars}</div>`;
@@ -1110,6 +1124,35 @@
         if (!html) html = '<div style="color:#888;font-style:italic">No details yet.</div>';
         popupBody.innerHTML = html;
       }
+
+      async function buyNow(priceMinor, subject) {
+        const btn = popupBody.querySelector(".popup-buy");
+        if (btn) {
+          btn.classList.add("loading");
+          btn.textContent = "Opening…";
+        }
+        try {
+          const res = await fetch("/api/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subject, priceMinor, currency: "USD" }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.checkoutUrl) {
+            throw new Error(data.error || "No checkout URL returned");
+          }
+          window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
+        } catch (err) {
+          console.error("[buyNow] checkout failed:", err);
+          alert("Unable to open checkout. Please try again.");
+        } finally {
+          if (btn) {
+            btn.classList.remove("loading");
+            btn.textContent = "Buy Now";
+          }
+        }
+      }
+      window.buyNow = buyNow;
 
       function openViewerPopup(hs) {
         currentPopupHotspot = hs;
