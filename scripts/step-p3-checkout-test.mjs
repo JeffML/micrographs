@@ -13,15 +13,26 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// ── Load .env manually (no build step / no dotenv package) ────────
-const envPath = path.join(__dirname, "../.env");
+// ── Load .env.sandbox if present, otherwise .env ─────────────────
+// Use .env.sandbox for sandbox credentials so tests never hit production.
+const sandboxEnvPath = path.join(__dirname, "../.env.sandbox");
+const defaultEnvPath = path.join(__dirname, "../.env");
+const envPath = fs.existsSync(sandboxEnvPath) ? sandboxEnvPath : defaultEnvPath;
 if (fs.existsSync(envPath)) {
+  console.log(`Loading credentials from ${path.basename(envPath)}`);
   for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const [key, ...rest] = trimmed.split("=");
     if (key && rest.length) process.env[key.trim()] = rest.join("=").trim();
   }
+}
+
+// ── Safety guard: refuse to run against production ────────────────
+if ((process.env.SQUARE_ENVIRONMENT ?? "sandbox") === "production") {
+  console.error("ERROR: SQUARE_ENVIRONMENT=production. This test must not run against production.");
+  console.error("Create a .env.sandbox file with sandbox credentials to run this test.");
+  process.exit(1);
 }
 
 const accessToken = process.env.SQUARE_ACCESS_TOKEN;

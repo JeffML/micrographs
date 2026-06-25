@@ -7,4 +7,5 @@ deno.lock
 
 # Local environment variables — never commit
 .env
+.env.sandbox
 .env.local
