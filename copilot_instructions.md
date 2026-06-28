@@ -14,20 +14,20 @@ Commerce note: `microAlbum` is the source of truth for saleable inventory. `wall
 
 ---
 
-## Commerce State (P3 in progress — June 2026)
+## Commerce State (P3 complete — June 2026)
 
-**P1 (manual Square links):** Complete. Proved UI pattern. Being retired.
+**P1 (manual Square links):** Complete. Proved UI pattern. Retired.
 **P2 (promotion pipeline):** Deferred. Not needed before live selling.
-**P3 (Square Checkout API):** Active branch `wallgallery/p1-buyflow-stepwise`.
+**P3 (Square Checkout API):** **Complete and live in production.**
+**P4 (order signal + fulfillment queue):** Next up.
 
 ### Current buy flow
 
 1. Buyer clicks any hotspot with a `price` field → popup opens
-2. If hotspot matches `products.json` entry: variant selector shown
-3. "Buy Now" button POSTs `{ subject, priceMinor, currency }` to `/api/checkout`
-4. Netlify Function `checkout.mjs` calls Square Checkout API → returns `checkoutUrl`
-5. Browser opens Square-hosted payment page in new tab
-6. Square emails buyer a receipt
+2. "Buy Now" button POSTs `{ subject, priceMinor, currency }` to `/api/checkout`
+3. Netlify Function `checkout.mjs` calls Square Checkout API → returns `checkoutUrl`
+4. Browser opens Square-hosted payment page in new tab
+5. Square emails buyer a receipt
 
 ### Netlify Function: `/api/checkout`
 
@@ -36,22 +36,15 @@ File: `netlify/functions/checkout.mjs`
 Request: `POST { subject: string, priceMinor: integer, currency?: string }`  
 Response: `{ checkoutUrl: string }` or `{ error: string }`
 
-Required env vars (set in Netlify dashboard AND local `.env`):
+Env vars (production values in Netlify dashboard; local `.env` has sandbox values):
 
-| Variable | Value |
-|---|---|
-| `SQUARE_ACCESS_TOKEN` | Sandbox or production access token |
-| `SQUARE_LOCATION_ID` | `LRGPDNKDRNF8S` |
-| `SQUARE_ENVIRONMENT` | `sandbox` or `production` |
+| Variable | Local (`.env`) | Production (Netlify dashboard) |
+|---|---|---|
+| `SQUARE_ACCESS_TOKEN` | sandbox token | production token |
+| `SQUARE_LOCATION_ID` | `LRGPDNKDRNF8S` | production location ID |
+| `SQUARE_ENVIRONMENT` | `sandbox` | `production` |
 
-**Local `.env` is gitignored — never committed.** Add to Netlify dashboard for deployed environments.
-
-### What's next (P3 remaining)
-
-- [ ] Sandbox E2E: run `netlify dev`, click Buy Now, complete test payment with Square sandbox card number
-- [ ] Add production env vars to Netlify dashboard
-- [ ] Deploy to production and verify one real transaction
-- [ ] Retire `products.json` manual links
+**Local `.env` is gitignored — never committed.**
 
 ### Test scripts
 
@@ -62,22 +55,18 @@ Required env vars (set in Netlify dashboard AND local `.env`):
 | `npm run test:step3` | variant selector defaults |
 | `npm run test:step4` | buy button state logic |
 | `npm run test:step5` | product/variant validation + fallback |
-| `npm run test:p3-checkout` | live Square sandbox API call |
+| `npm run test:p3-checkout` | live Square sandbox API call (sandbox only — refuses to run against production) |
 
----
+### Branch state
 
-## E2E Manual Preview Checklist (Step 6)
+`main` is the only branch. All P1/P3 work is merged. No active feature branches.
 
-Run against `netlify dev` (localhost:8888) or a draft deploy.
+### What's next (P4)
 
-- [x] Open `http://localhost:8888` — wall image loads, no console errors
-- [x] Click the Mountain Ash hotspot — popup opens
-- [x] Popup shows: subject, variant selector with "8×10 signed print — $250.00", price "$250.00"
-- [x] Variant option is highlighted (selected state)
-- [x] "Buy Now" button is visible and yellow
-- [x] Click "Buy Now" — Square payment page opens in new tab at `https://square.link/u/dZhGa2H4`
-- [x] Close popup (× or click outside) — popup closes cleanly
-- [x] No JS errors in browser console throughout
+- Select ingestion mode for Square order signal (webhook vs manual import)
+- Persist canonical `OrderRecord` with fulfillment state
+- Add minimal fulfillment queue view
+- Define and test status transitions from paid → fulfilled
 
 ---
 
