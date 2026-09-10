@@ -663,8 +663,9 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           if (document.getElementById("edit-overlay").classList.contains("open")) {
-            closeEditModal();
-          } else if (document.getElementById("popup-overlay").classList.contains("open")) {
+            return; // Edit Hotspot modal only closes via Discard or × — never on Escape or focus loss
+          }
+          if (document.getElementById("popup-overlay").classList.contains("open")) {
             closePopup();
           } else if (editing) {
             setEditing(false);
@@ -1048,20 +1049,8 @@
         const commerceMatch = findProductForHotspot(currentPopupHotspot, productIndex);
         const fields = [
           { label: "Subject", value: currentPopupHotspot.subject },
+          { label: "Description", value: currentPopupHotspot.notes },
           { label: "Magnification", value: currentPopupHotspot.magnification },
-          {
-            label: "Lighting",
-            value: Array.isArray(currentPopupHotspot.lighting)
-              ? currentPopupHotspot.lighting.join(", ")
-              : currentPopupHotspot.lighting,
-          },
-          {
-            label: "Tags",
-            value: Array.isArray(currentPopupHotspot.tags)
-              ? currentPopupHotspot.tags.join(", ")
-              : currentPopupHotspot.tags,
-          },
-          { label: "Notes", value: currentPopupHotspot.notes },
         ];
         let html = "";
         for (const f of fields) {
@@ -1184,9 +1173,6 @@
       const efSave = document.getElementById("ef-save");
       const efCancel = document.getElementById("ef-cancel");
       const efCancelX = document.getElementById("ef-cancel-x");
-      editOverlay.addEventListener("click", (e) => {
-        if (e.target === editOverlay) closeEditModal();
-      });
 
       function openEditModal(hs) {
         efTooltip.value = hs.tooltip || "";
