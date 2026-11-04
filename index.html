@@ -1053,12 +1053,34 @@
       // Expose to global scope so inline onclick handlers in popup HTML can reach it
       window.selectVariant = selectVariant;
 
+      function separateCopyright(notes, copyright) {
+        const lines = String(notes || "").split(/\r?\n/);
+        let start = lines.length;
+        const extractedLines = [];
+        while (start > 0) {
+          const line = lines[start - 1].trim();
+          if (!line || /^(?:©|\(c\)|copyright\b)/i.test(line)) {
+            if (line) extractedLines.unshift(line);
+            start--;
+          } else {
+            break;
+          }
+        }
+
+        const extracted = [...new Set(extractedLines)].join("\n");
+        return {
+          notes: lines.slice(0, start).join("\n").trimEnd(),
+          copyright: String(copyright || "").trim() || extracted,
+        };
+      }
+
       function updatePopupDisplay() {
         const commerceMatch = findProductForHotspot(currentPopupHotspot, productIndex);
+        const popupText = separateCopyright(currentPopupHotspot.notes, currentPopupHotspot.copyright);
         const fields = [
           { label: "Subject", value: currentPopupHotspot.subject },
-          { label: "Description", value: currentPopupHotspot.notes },
-          { label: "Copyright", value: currentPopupHotspot.copyright },
+          { label: "Description", value: popupText.notes },
+          { label: "Copyright", value: popupText.copyright },
           { label: "Magnification", value: currentPopupHotspot.magnification },
         ];
         let html = "";
@@ -1185,13 +1207,14 @@
       const efCancelX = document.getElementById("ef-cancel-x");
 
       function openEditModal(hs) {
+        const editText = separateCopyright(hs.notes, hs.copyright);
         efTooltip.value = hs.tooltip || "";
         efSubject.value = hs.subject || "";
-        efCopyright.value = hs.copyright || "";
+        efCopyright.value = editText.copyright;
         efMagnification.value = hs.magnification || "";
         efLighting.value = Array.isArray(hs.lighting) ? hs.lighting.join(", ") : hs.lighting || "";
         efTags.value = Array.isArray(hs.tags) ? hs.tags.join(", ") : hs.tags || "";
-        efNotes.value = hs.notes || "";
+        efNotes.value = editText.notes;
         efPrice.value = hs.price || "";
         efLink.value = hs.link || "";
         editOverlay.classList.add("open");
