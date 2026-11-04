@@ -59,6 +59,7 @@ Password is validated against the server on entry. To reset the password:
 | ------------- | ---------------------------------------------- |
 | Hover label   | Short text shown on mouse hover                |
 | Subject       | Full description of the subject                |
+| Copyright     | Copyright text shown in its own popup field    |
 | Magnification | e.g. `40x`, `100x`                             |
 | Lighting      | Comma-separated: e.g. `darkfield, brightfield` |
 | Tags          | Comma-separated keywords                       |
@@ -80,6 +81,7 @@ Password is validated against the server on entry. To reset the password:
     "h": 24.6,
     "tooltip": "Hover label",
     "subject": "Full subject description",
+    "copyright": "© Jeff Lowery",
     "magnification": "40x",
     "lighting": ["darkfield", "brightfield"],
     "tags": ["flower"],

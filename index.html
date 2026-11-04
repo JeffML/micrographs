@@ -446,6 +446,7 @@
         <h3 style="margin-bottom: 16px; font-weight: 500; font-size: 16px; color: #ccc">Edit Hotspot</h3>
         <label>Hover label<input id="ef-tooltip" type="text" /></label>
         <label>Subject<input id="ef-subject" type="text" /></label>
+        <label>Copyright<input id="ef-copyright" type="text" /></label>
         <label>Magnification<input id="ef-magnification" type="text" /></label>
         <label
           >Lighting <small style="text-transform: none; letter-spacing: normal; color: #666">(comma-separated)</small
@@ -475,6 +476,7 @@
       let editing = false;
       let editorPassword = null;
       let dirty = false;
+      let savedHotspots = null;
 
       function markDirty() {
         dirty = true;
@@ -588,7 +590,10 @@
       function setEditing(on) {
         if (!on && dirty) {
           if (!confirm("You have unsaved changes. Exit without saving?")) return;
+          hotspots = structuredClone(savedHotspots || []);
+          render();
         }
+        if (on) savedHotspots = structuredClone(hotspots);
         editing = on;
         if (!on) clearDirty();
         document.body.classList.toggle("editing", on);
@@ -905,6 +910,7 @@
           h: round(rect.h),
           tooltip: "",
           subject: "",
+          copyright: "",
           magnification: "",
           lighting: [],
           tags: [],
@@ -975,6 +981,7 @@
           h: round(hs.h),
           tooltip: hs.tooltip || "",
           subject: hs.subject || "",
+          copyright: hs.copyright || "",
           magnification: hs.magnification || "",
           lighting: hs.lighting || [],
           tags: hs.tags || [],
@@ -992,6 +999,7 @@
           });
           if (res.ok) {
             btnSave.textContent = "Saved!";
+            savedHotspots = structuredClone(clean);
             clearDirty();
             setTimeout(() => {
               btnSave.textContent = "Save";
@@ -1050,6 +1058,7 @@
         const fields = [
           { label: "Subject", value: currentPopupHotspot.subject },
           { label: "Description", value: currentPopupHotspot.notes },
+          { label: "Copyright", value: currentPopupHotspot.copyright },
           { label: "Magnification", value: currentPopupHotspot.magnification },
         ];
         let html = "";
@@ -1164,6 +1173,7 @@
       const editOverlay = document.getElementById("edit-overlay");
       const efTooltip = document.getElementById("ef-tooltip");
       const efSubject = document.getElementById("ef-subject");
+      const efCopyright = document.getElementById("ef-copyright");
       const efMagnification = document.getElementById("ef-magnification");
       const efLighting = document.getElementById("ef-lighting");
       const efTags = document.getElementById("ef-tags");
@@ -1177,6 +1187,7 @@
       function openEditModal(hs) {
         efTooltip.value = hs.tooltip || "";
         efSubject.value = hs.subject || "";
+        efCopyright.value = hs.copyright || "";
         efMagnification.value = hs.magnification || "";
         efLighting.value = Array.isArray(hs.lighting) ? hs.lighting.join(", ") : hs.lighting || "";
         efTags.value = Array.isArray(hs.tags) ? hs.tags.join(", ") : hs.tags || "";
@@ -1189,6 +1200,7 @@
         function doSave() {
           hs.tooltip = efTooltip.value.trim();
           hs.subject = efSubject.value.trim();
+          hs.copyright = efCopyright.value.trim();
           hs.magnification = efMagnification.value.trim();
           hs.lighting = efLighting.value
             .split(",")
